@@ -34,12 +34,14 @@ public class OnlineMainMenuController {
             switch (mainChoice) {
                 case "1" -> {
                     clearScreen();
+                    System.out.println("=== LOGIN ===");
                     System.out.print("Enter username: ");
                     String username = scanner.nextLine().trim();
                     System.out.print("Enter password: ");
                     String password = scanner.nextLine().trim();
 
                     if (!userGateway.authenticateUser(username, password)) {
+                        clearScreen();
                         System.out.println("Login failed. Invalid credentials.");
                         pause(scanner);
                         break;
@@ -50,6 +52,8 @@ public class OnlineMainMenuController {
                 }
 
                 case "2" -> {
+                    clearScreen();
+                    System.out.println("=== REGISTER NEW USER ===");
                     System.out.print("Choose a username: ");
                     String newUsername = scanner.nextLine().trim();
                     System.out.print("Choose a password: ");
@@ -61,6 +65,7 @@ public class OnlineMainMenuController {
 
                     OnlineUser newUser = new OnlineUser(newUsername, newPassword, contact, address);
                     boolean registered = userGateway.registerUser(newUser);
+                    clearScreen();
                     if (registered) {
                         System.out.println("Registration successful. You can now login.");
                     } else {
@@ -70,12 +75,14 @@ public class OnlineMainMenuController {
                 }
 
                 case "0" -> {
+                    clearScreen();
                     System.out.println("Returning to main menu...");
                     pause(scanner);
                     return;
                 }
 
                 default -> {
+                    clearScreen();
                     System.out.println("Invalid option. Please try again.");
                     pause(scanner);
                 }
@@ -334,11 +341,10 @@ public class OnlineMainMenuController {
         System.out.println("===============================================================");
         System.out.println("                         YOUR PAST BILLS");
         System.out.println("===============================================================");
-        System.out.printf("%-5s %-20s %-20s %-12s%n", "ID", "Date & Time", "Payment", "Total (Rs.)");
+        System.out.printf("%-5s %-15s %-20s %-12s%n", "ID", "Date", "Payment", "Total (Rs.)");
         System.out.println("---------------------------------------------------------------");
 
         for (Bill bill : bills) {
-            // Convert payment method to abbreviations
             String paymentMethod = bill.getPaymentMethod() != null ? bill.getPaymentMethod() : "N/A";
             if (paymentMethod.equalsIgnoreCase("Cash on Delivery")) {
                 paymentMethod = "COD";
@@ -346,9 +352,12 @@ public class OnlineMainMenuController {
                 paymentMethod = "PIS";
             }
 
-            System.out.printf("%-5d %-20s %-20s %-12.2f%n",
+            // Show only date part
+            String formattedDate = bill.getDate().toLocalDate().toString();
+
+            System.out.printf("%-5d %-15s %-20s %-12.2f%n",
                     bill.getId(),
-                    bill.getDate().toString().replace("T", " "),
+                    formattedDate,
                     paymentMethod,
                     bill.getTotal());
         }
@@ -397,7 +406,7 @@ public class OnlineMainMenuController {
         System.out.println("                          BILL DETAILS");
         System.out.println("=".repeat(70));
         System.out.println("Bill ID      : " + bill.getId());
-        System.out.println("Date & Time  : " + bill.getDate().toString().replace("T", " "));
+        System.out.println("Date         : " + bill.getDate().toLocalDate());
         System.out.println("Payment      : " + (bill.getPaymentMethod() != null ? bill.getPaymentMethod() : "N/A"));
         System.out.println("-".repeat(70));
         System.out.printf("%-12s %-30s %7s %10s %10s%n", "Code", "Item Name", "Qty", "Price", "Subtotal");

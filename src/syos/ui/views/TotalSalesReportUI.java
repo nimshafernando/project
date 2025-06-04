@@ -8,13 +8,8 @@ import syos.service.SalesReportService.TransactionType;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
-/**
- * Concrete Report UI for "Total Sales (Daily)".
- * Extends AbstractReportUI with report-specific criteria and rendering.
- */
 public class TotalSalesReportUI extends AbstractReportUI<ReportItemDTO> {
 
     private final SalesReportService service = new SalesReportService();
@@ -29,24 +24,20 @@ public class TotalSalesReportUI extends AbstractReportUI<ReportItemDTO> {
 
     @Override
     protected boolean gatherReportCriteria() {
-        // Allow user to exit at date prompt
-        if (!promptDateRange()) {
-            return false; // User chose to exit
-        }
-
+        if (!promptDateRange())
+            return false;
         clearScreen();
+
         storeType = promptStoreType();
-        if (storeType == null) {
-            return false; // User chose to exit
-        }
-
+        if (storeType == null)
+            return false;
         clearScreen();
+
         txnType = promptTransactionType(storeType);
-        if (txnType == null) {
-            return false; // User chose to exit
-        }
-
+        if (txnType == null)
+            return false;
         clearScreen();
+
         return true;
     }
 
@@ -55,181 +46,8 @@ public class TotalSalesReportUI extends AbstractReportUI<ReportItemDTO> {
         return "SYOS DAILY SALES REPORT";
     }
 
-    /**
-     * Prompts for date range with predefined options
-     * Returns false if user wants to exit
-     */
-    private boolean promptDateRange() {
-        while (true) {
-            System.out.println("Select Date Range:");
-            System.out.println("  1. Today");
-            System.out.println("  2. This Week");
-            System.out.println("  3. This Month");
-            System.out.println("  4. Specific Date Range");
-            System.out.println("  0. Back to previous menu");
-            System.out.print("Choice (0-4): ");
-
-            String choice = scanner.nextLine().trim();
-            switch (choice) {
-                case "1":
-                    startDate = LocalDate.now();
-                    endDate = LocalDate.now();
-                    return true;
-                case "2":
-                    startDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-                    endDate = LocalDate.now().with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
-                    return true;
-                case "3":
-                    startDate = LocalDate.now().withDayOfMonth(1);
-                    endDate = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
-                    return true;
-                case "4":
-                    return promptSpecificDateRange();
-                case "0":
-                case "":
-                    return false; // User wants to go back
-                default:
-                    System.out.println("[Invalid] Enter 0-4.");
-            }
-        }
-    }
-
-    /**
-     * Prompts for specific date range
-     * Returns false if user wants to go back
-     */
-    private boolean promptSpecificDateRange() {
-        while (true) {
-            System.out.print("Enter start date (yyyy-mm-dd) or press Enter to go back: ");
-            String startInput = scanner.nextLine().trim();
-
-            if (startInput.isEmpty()) {
-                return false; // User wants to go back
-            }
-
-            try {
-                startDate = LocalDate.parse(startInput);
-            } catch (DateTimeParseException e) {
-                System.out.println("[Invalid] Use format yyyy-mm-dd (e.g., 2024-01-15).");
-                continue;
-            }
-
-            System.out.print("Enter end date (yyyy-mm-dd) or press Enter to go back: ");
-            String endInput = scanner.nextLine().trim();
-
-            if (endInput.isEmpty()) {
-                return false; // User wants to go back
-            }
-
-            try {
-                endDate = LocalDate.parse(endInput);
-                if (endDate.isBefore(startDate)) {
-                    System.out.println("[Invalid] End date cannot be before start date.");
-                    continue;
-                }
-                return true;
-            } catch (DateTimeParseException e) {
-                System.out.println("[Invalid] Use format yyyy-mm-dd (e.g., 2024-01-15).");
-            }
-        }
-    }
-
-    /**
-     * Prompts for store type with option to go back
-     * Returns null if user wants to exit
-     */
-    private StoreType promptStoreType() {
-        while (true) {
-            System.out.println("Select Store Type:");
-            System.out.println("  1. In-Store");
-            System.out.println("  2. Online");
-            System.out.println("  3. Combined");
-            System.out.println("  0. Back to previous menu");
-            System.out.print("Choice (0-3): ");
-
-            String choice = scanner.nextLine().trim();
-            switch (choice) {
-                case "1":
-                    return StoreType.IN_STORE;
-                case "2":
-                    return StoreType.ONLINE;
-                case "3":
-                    return StoreType.COMBINED;
-                case "0":
-                case "":
-                    return null; // User wants to go back
-                default:
-                    System.out.println("[Invalid] Enter 0-3.");
-            }
-        }
-    }
-
-    /**
-     * Prompts for transaction type with option to go back
-     * Returns null if user wants to exit
-     */
-    private TransactionType promptTransactionType(StoreType st) {
-        if (st == StoreType.IN_STORE) {
-            System.out.println("Transaction Type: In-Store (cash only)");
-            return TransactionType.IN_STORE;
-        }
-
-        while (true) {
-            if (st == StoreType.ONLINE) {
-                System.out.println("Select Transaction Type:");
-                System.out.println("  1. Pay in Store");
-                System.out.println("  2. Cash on Delivery");
-                System.out.println("  3. All Online Orders");
-                System.out.println("  0. Back to previous menu");
-                System.out.print("Choice (0-3): ");
-
-                String choice = scanner.nextLine().trim();
-                switch (choice) {
-                    case "1":
-                        return TransactionType.RESERVATION_PAY_IN_STORE;
-                    case "2":
-                        return TransactionType.RESERVATION_COD;
-                    case "3":
-                        return TransactionType.ALL;
-                    case "0":
-                    case "":
-                        return null; // User wants to go back
-                    default:
-                        System.out.println("[Invalid] Enter 0-3.");
-                }
-            } else { // COMBINED
-                System.out.println("Select Transaction Type:");
-                System.out.println("  1. Cash");
-                System.out.println("  2. Pay in Store");
-                System.out.println("  3. Cash on Delivery");
-                System.out.println("  4. All Transactions");
-                System.out.println("  0. Back to previous menu");
-                System.out.print("Choice (0-4): ");
-
-                String choice = scanner.nextLine().trim();
-                switch (choice) {
-                    case "1":
-                        return TransactionType.IN_STORE;
-                    case "2":
-                        return TransactionType.RESERVATION_PAY_IN_STORE;
-                    case "3":
-                        return TransactionType.RESERVATION_COD;
-                    case "4":
-                        return TransactionType.ALL;
-                    case "0":
-                    case "":
-                        return null; // User wants to go back
-                    default:
-                        System.out.println("[Invalid] Enter 0-4.");
-                }
-            }
-        }
-    }
-
     @Override
     protected List<ReportItemDTO> fetchReportItems() {
-        // Note: You'll need to update your SalesReportService to accept date range
-        // For now, using startDate as the single date parameter
         return service.getSalesReport(startDate, storeType, txnType);
     }
 
@@ -238,34 +56,14 @@ public class TotalSalesReportUI extends AbstractReportUI<ReportItemDTO> {
         int totalQty = 0;
         double totalRev = 0;
 
-        System.out.println("=======================================================");
-        System.out.println("                 SYOS DAILY SALES REPORT               ");
-        System.out.println("=======================================================");
-
-        if (startDate.equals(endDate)) {
-            System.out.println("Date       : " + startDate);
-        } else {
-            System.out.println("Date Range : " + startDate + " to " + endDate);
-        }
-
-        System.out.println("Store Type : " + storeType);
-        System.out.println("Txn Type   : " + txnType);
-        System.out.println("-------------------------------------------------------");
-
-        // Adjust column headers based on store type
-        if (storeType == StoreType.COMBINED) {
-            System.out.printf("%-10s %-25s %-10s %7s %12s%n", "Code", "Name", "Store", "Qty", "Revenue");
-        } else {
-            System.out.printf("%-10s %-30s %7s %12s%n", "Code", "Name", "Qty", "Revenue");
-        }
-        System.out.println("-------------------------------------------------------");
+        printHeader();
+        printTableHeader();
 
         for (ReportItemDTO dto : items) {
             totalQty += dto.getQuantity();
             totalRev += dto.getRevenue();
 
             if (storeType == StoreType.COMBINED) {
-                // Extract store type from item name if it contains store info
                 String storeName = extractStoreType(dto.getName());
                 String itemName = cleanItemName(dto.getName());
                 System.out.printf("%-10s %-25s %-10s %7d %12.2f%n",
@@ -285,37 +83,147 @@ public class TotalSalesReportUI extends AbstractReportUI<ReportItemDTO> {
         System.out.println("=======================================================");
     }
 
-    /**
-     * Extracts store type from item name for combined reports
-     */
-    private String extractStoreType(String itemName) {
-        if (itemName.contains("(In-Store)")) {
-            return "In-Store";
-        } else if (itemName.contains("(Online)")) {
-            return "Online";
+    private void printHeader() {
+        System.out.println("=======================================================");
+        System.out.println("                 SYOS DAILY SALES REPORT               ");
+        System.out.println("=======================================================");
+
+        System.out.println(startDate.equals(endDate)
+                ? "Date       : " + startDate
+                : "Date Range : " + startDate + " to " + endDate);
+
+        System.out.println("Store Type : " + storeType);
+        System.out.println("Txn Type   : " + txnType);
+        System.out.println("-------------------------------------------------------");
+    }
+
+    private void printTableHeader() {
+        if (storeType == StoreType.COMBINED) {
+            System.out.printf("%-10s %-25s %-10s %7s %12s%n", "Code", "Name", "Store", "Qty", "Revenue");
+        } else {
+            System.out.printf("%-10s %-30s %7s %12s%n", "Code", "Name", "Qty", "Revenue");
         }
+        System.out.println("-------------------------------------------------------");
+    }
+
+    private boolean promptDateRange() {
+        Map<String, Runnable> options = new LinkedHashMap<>();
+        options.put("1", () -> startDate = endDate = LocalDate.now());
+        options.put("2", () -> {
+            startDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+            endDate = LocalDate.now().with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
+        });
+        options.put("3", () -> {
+            startDate = LocalDate.now().withDayOfMonth(1);
+            endDate = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+        });
+        options.put("4", () -> {
+            if (!promptSpecificDateRange())
+                throw new RuntimeException("exit");
+        });
+        options.put("0", () -> {
+            throw new RuntimeException("exit");
+        });
+
+        while (true) {
+            System.out.println("Select Date Range:");
+            System.out.println("  1. Today\n  2. This Week\n  3. This Month\n  4. Specific Date Range\n  0. Back");
+            System.out.print("Choice (0-4): ");
+
+            String input = scanner.nextLine().trim();
+            if (options.containsKey(input)) {
+                try {
+                    options.get(input).run();
+                    return true;
+                } catch (RuntimeException e) {
+                    return false;
+                }
+            } else {
+                System.out.println("[Invalid] Enter 0–4.");
+            }
+        }
+    }
+
+    private boolean promptSpecificDateRange() {
+        try {
+            System.out.print("Enter start date (yyyy-mm-dd): ");
+            startDate = LocalDate.parse(scanner.nextLine().trim());
+
+            System.out.print("Enter end date (yyyy-mm-dd): ");
+            endDate = LocalDate.parse(scanner.nextLine().trim());
+
+            if (endDate.isBefore(startDate)) {
+                System.out.println("[Invalid] End date before start date.");
+                return false;
+            }
+            return true;
+        } catch (DateTimeParseException e) {
+            System.out.println("[Invalid] Use yyyy-mm-dd format.");
+            return false;
+        }
+    }
+
+    private StoreType promptStoreType() {
+        Map<String, StoreType> options = new LinkedHashMap<>();
+        options.put("1", StoreType.IN_STORE);
+        options.put("2", StoreType.ONLINE);
+        options.put("3", StoreType.COMBINED);
+        options.put("0", null);
+        return promptOption("Store Type", options);
+    }
+
+    private TransactionType promptTransactionType(StoreType st) {
+        if (st == StoreType.IN_STORE)
+            return TransactionType.IN_STORE;
+
+        Map<String, TransactionType> options = new LinkedHashMap<>();
+        switch (st) {
+            case ONLINE -> {
+                options.put("1", TransactionType.RESERVATION_PAY_IN_STORE);
+                options.put("2", TransactionType.RESERVATION_COD);
+                options.put("3", TransactionType.ALL);
+                options.put("0", null);
+                return promptOption("Online Transaction Type", options);
+            }
+            case COMBINED -> {
+                options.put("1", TransactionType.IN_STORE);
+                options.put("2", TransactionType.RESERVATION_PAY_IN_STORE);
+                options.put("3", TransactionType.RESERVATION_COD);
+                options.put("4", TransactionType.ALL);
+                options.put("0", null);
+                return promptOption("Combined Transaction Type", options);
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    private <T> T promptOption(String label, Map<String, T> options) {
+        while (true) {
+            System.out.println("Select " + label + ":");
+            options.forEach((k, v) -> System.out.println("  " + k + ". " + (v != null ? v : "Back")));
+            System.out.print("Choice: ");
+            String choice = scanner.nextLine().trim();
+            if (options.containsKey(choice))
+                return options.get(choice);
+            System.out.println("[Invalid] Try again.");
+        }
+    }
+
+    private String extractStoreType(String itemName) {
+        if (itemName.contains("(In-Store)"))
+            return "In-Store";
+        if (itemName.contains("(Online)"))
+            return "Online";
         return "Unknown";
     }
 
-    /**
-     * Removes store type suffix from item name
-     */
     private String cleanItemName(String itemName) {
-        if (itemName.contains("(In-Store)")) {
-            return itemName.replace(" (In-Store)", "").trim();
-        } else if (itemName.contains("(Online)")) {
-            return itemName.replace(" (Online)", "").trim();
-        }
-        return itemName;
+        return itemName.replace(" (In-Store)", "").replace(" (Online)", "").trim();
     }
 
-    /**
-     * Truncates item names for better table formatting
-     */
     private String truncateName(String name, int maxLength) {
-        if (name.length() <= maxLength) {
-            return name;
-        }
-        return name.substring(0, maxLength - 3) + "...";
+        return name.length() <= maxLength ? name : name.substring(0, maxLength - 3) + "...";
     }
 }

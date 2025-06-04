@@ -5,14 +5,8 @@ import syos.service.ReshelvedItemsReportService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
-/**
- * Reshelved Items Report UI with Store Type Selection.
- * Leverages the Template Method in AbstractReportUI.
- * Shows items moved from batch storage to store shelves.
- */
 public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
 
     private final ReshelvedItemsReportService service = new ReshelvedItemsReportService();
@@ -41,129 +35,99 @@ public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
     @Override
     protected boolean gatherReportCriteria() {
         try {
-            // First prompt for store filter
-            storeFilter = promptStoreFilter();
-            if (storeFilter == null) {
-                return false; // User chose to exit
-            }
+            Map<String, StoreFilter> storeOptions = new LinkedHashMap<>();
+            storeOptions.put("1", StoreFilter.IN_STORE_ONLY);
+            storeOptions.put("2", StoreFilter.ONLINE_ONLY);
+            storeOptions.put("3", StoreFilter.COMBINED);
+            storeOptions.put("0", null);
+            storeFilter = promptFilter("Store Type", storeOptions);
+            if (storeFilter == null)
+                return false;
 
             clearScreen();
 
-            // Then prompt for date range filter
-            dateRangeFilter = promptDateRangeFilter();
-            if (dateRangeFilter == null) {
-                return false; // User chose to exit
-            }
+            Map<String, DateRangeFilter> dateOptions = new LinkedHashMap<>();
+            dateOptions.put("1", DateRangeFilter.TODAY);
+            dateOptions.put("2", DateRangeFilter.THIS_WEEK);
+            dateOptions.put("3", DateRangeFilter.THIS_MONTH);
+            dateOptions.put("4", DateRangeFilter.SPECIFIC_DATE_RANGE);
+            dateOptions.put("0", null);
+            dateRangeFilter = promptFilter("Date Range", dateOptions);
+            if (dateRangeFilter == null)
+                return false;
 
             clearScreen();
 
-            // Set dates based on filter selection
-            if (!setDatesFromFilter()) {
-                return false; // User cancelled during specific date input
-            }
+            if (!setDatesFromFilter())
+                return false;
 
             clearScreen();
             return true;
+
         } catch (Exception e) {
             System.out.println("Error gathering criteria: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
-    /**
-     * Prompts user to select date range filter.
-     * Returns null if user wants to go back.
-     */
-    private DateRangeFilter promptDateRangeFilter() {
+    private <T> T promptFilter(String label, Map<String, T> options) {
         while (true) {
-            System.out.println("Select Date Range:");
-            System.out.println("  1. Today");
-            System.out.println("  2. This Week");
-            System.out.println("  3. This Month");
-            System.out.println("  4. Specific Date Range");
-            System.out.println("  0. Back to Reports Menu");
-            System.out.print("Choice (0-4): ");
-
-            switch (scanner.nextLine().trim()) {
-                case "1":
-                    return DateRangeFilter.TODAY;
-                case "2":
-                    return DateRangeFilter.THIS_WEEK;
-                case "3":
-                    return DateRangeFilter.THIS_MONTH;
-                case "4":
-                    return DateRangeFilter.SPECIFIC_DATE_RANGE;
-                case "0":
-                case "":
-                    return null; // Return null to indicate user wants to go back
-                default:
-                    System.out.println("[Invalid] Enter 0-4.");
-            }
+            System.out.println("Select " + label + ":");
+            options.forEach((key, value) -> System.out
+                    .println("  " + key + ". " + (value != null ? value.toString().replace("_", " ") : "Back")));
+            System.out.print("Choice: ");
+            String input = scanner.nextLine().trim();
+            if (options.containsKey(input))
+                return options.get(input);
+            System.out.println("[Invalid] Please enter a valid option.");
         }
     }
 
-    /**
-     * Sets start and end dates based on the selected filter.
-     * Returns false if user cancels during specific date input.
-     */
     private boolean setDatesFromFilter() {
         LocalDate today = LocalDate.now();
 
-        switch (dateRangeFilter) {
-            case TODAY:
-                startDate = today;
-                endDate = today;
-                break;
-
-            case THIS_WEEK:
-                // Start from Monday of current week
+        return switch (dateRangeFilter) {
+            case TODAY -> {
+                startDate = endDate = today;
+                yield true;
+            }
+            case THIS_WEEK -> {
                 startDate = today.minusDays(today.getDayOfWeek().getValue() - 1);
                 endDate = today;
-                break;
-
-            case THIS_MONTH:
-                // Start from first day of current month
+                yield true;
+            }
+            case THIS_MONTH -> {
                 startDate = today.withDayOfMonth(1);
                 endDate = today;
-                break;
+                yield true;
+            }
+            case SPECIFIC_DATE_RANGE -> promptSpecificDateRange();
+        };
+    }
 
-            case SPECIFIC_DATE_RANGE:
-                System.out.println("Enter Start Date:");
-                startDate = promptDate();
-                if (startDate == null) {
-                    return false; // User cancelled
-                }
+    private boolean promptSpecificDateRange() {
+        System.out.println("Enter Start Date:");
+        startDate = promptDate();
+        if (startDate == null)
+            return false;
 
-                System.out.println("Enter End Date:");
-                endDate = promptDate();
-                if (endDate == null) {
-                    return false; // User cancelled
-                }
-
-                // Validate date range
-                if (endDate.isBefore(startDate)) {
-                    System.out.println("End date cannot be before start date!");
-                    return false;
-                }
-                break;
+        System.out.println("Enter End Date:");
+        endDate = promptDate();
+        if (endDate == null || endDate.isBefore(startDate)) {
+            System.out.println("End date cannot be before start date!");
+            return false;
         }
 
         return true;
     }
 
-    /**
-     * Prompt for a valid date (yyyy-MM-dd) with option to go back
-     * Returns null if user wants to exit
-     */
     private LocalDate promptDate() {
         while (true) {
             System.out.print("Enter date (yyyy-MM-dd) or press Enter to go back: ");
             String input = scanner.nextLine().trim();
-
-            // Allow user to go back by pressing Enter
-            if (input.isEmpty()) {
+            if (input.isEmpty())
                 return null;
-            }
 
             try {
                 return LocalDate.parse(input);
@@ -173,37 +137,12 @@ public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
         }
     }
 
-    /**
-     * Prompts user to select store type filter.
-     * Returns null if user wants to go back.
-     */
-    private StoreFilter promptStoreFilter() {
-        while (true) {
-            System.out.println("Select Store Type:");
-            System.out.println("  1. In-Store Reshelving Only");
-            System.out.println("  2. Online Reshelving Only");
-            System.out.println("  3. Combined (Both In-Store and Online)");
-            System.out.println("  0. Back to Reports Menu");
-            System.out.print("Choice (0-3): ");
-
-            switch (scanner.nextLine().trim()) {
-                case "1":
-                    return StoreFilter.IN_STORE_ONLY;
-                case "2":
-                    return StoreFilter.ONLINE_ONLY;
-                case "3":
-                    return StoreFilter.COMBINED;
-                case "0":
-                case "":
-                    return null; // Return null to indicate user wants to go back
-                default:
-                    System.out.println("[Invalid] Enter 0-3.");
-            }
-        }
-    }
-
     @Override
     protected List<ReshelvedItemDTO> fetchReportItems() {
+        if (storeFilter == null || startDate == null || endDate == null) {
+            throw new IllegalStateException("Cannot fetch data: storeFilter, startDate, or endDate is null.");
+        }
+
         return switch (storeFilter) {
             case IN_STORE_ONLY -> service.getReshelvedItemsForInStoreRange(startDate, endDate);
             case ONLINE_ONLY -> service.getReshelvedItemsForOnlineRange(startDate, endDate);
@@ -213,7 +152,6 @@ public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
 
     @Override
     protected void renderReport(List<ReshelvedItemDTO> items) {
-        int total = 0;
         System.out.println("==============================================");
         System.out.println("      SYOS DAILY RESHELVED ITEMS REPORT      ");
         System.out.println("        (Items Moved from Batch to Shelf)    ");
@@ -222,53 +160,48 @@ public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
         System.out.println("Store Type: " + getStoreTypeDescription());
         System.out.println("----------------------------------------------");
 
-        // Adjust column widths based on whether it's combined report
+        printTableHeader();
+
+        if (items.isEmpty()) {
+            System.out.println("No reshelving activities found for the selected criteria.");
+        } else {
+            int total = 0;
+            for (ReshelvedItemDTO dto : items) {
+                printRow(dto);
+                total += dto.getQuantity();
+            }
+            System.out.println("----------------------------------------------");
+            System.out.printf("Total Items Reshelved from Batches: %d%n", total);
+        }
+
+        System.out.println("==============================================");
+    }
+
+    private void printTableHeader() {
         if (storeFilter == StoreFilter.COMBINED) {
             System.out.printf("%-10s %-40s %8s%n", "Code", "Name", "Quantity");
         } else {
             System.out.printf("%-10s %-30s %8s%n", "Code", "Name", "Quantity");
         }
         System.out.println("----------------------------------------------");
-
-        if (items.isEmpty()) {
-            System.out.println("No reshelving activities found for the selected criteria.");
-        } else {
-            for (ReshelvedItemDTO dto : items) {
-                if (storeFilter == StoreFilter.COMBINED) {
-                    System.out.printf("%-10s %-40s %8d%n",
-                            dto.getCode(),
-                            truncateName(dto.getName(), 40),
-                            dto.getQuantity());
-                } else {
-                    System.out.printf("%-10s %-30s %8d%n",
-                            dto.getCode(),
-                            truncateName(dto.getName(), 30),
-                            dto.getQuantity());
-                }
-                total += dto.getQuantity();
-            }
-        }
-
-        System.out.println("----------------------------------------------");
-        System.out.printf("Total Items Reshelved from Batches: %d%n", total);
-        System.out.println("==============================================");
     }
 
-    /**
-     * Formats the date range for display.
-     */
+    private void printRow(ReshelvedItemDTO dto) {
+        if (storeFilter == StoreFilter.COMBINED) {
+            System.out.printf("%-10s %-40s %8d%n",
+                    dto.getCode(), truncateName(dto.getName(), 40), dto.getQuantity());
+        } else {
+            System.out.printf("%-10s %-30s %8d%n",
+                    dto.getCode(), truncateName(dto.getName(), 30), dto.getQuantity());
+        }
+    }
+
     private String formatDateRange() {
-        if (startDate.equals(endDate)) {
-            return startDate.toString();
-        } else {
-            return startDate + " to " + endDate;
-        }
+        return startDate.equals(endDate)
+                ? startDate.toString()
+                : startDate + " to " + endDate;
     }
 
-    /**
-     * Gets description of selected store type.
-     * KISS principle: Simple string mapping.
-     */
     private String getStoreTypeDescription() {
         return switch (storeFilter) {
             case IN_STORE_ONLY -> "In-Store Reshelving Only";
@@ -277,14 +210,7 @@ public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
         };
     }
 
-    /**
-     * Truncates item names for better table formatting.
-     * YAGNI principle: Simple truncation without complex formatting.
-     */
     private String truncateName(String name, int maxLength) {
-        if (name.length() <= maxLength) {
-            return name;
-        }
-        return name.substring(0, maxLength - 3) + "...";
+        return name.length() <= maxLength ? name : name.substring(0, maxLength - 3) + "...";
     }
 }

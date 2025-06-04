@@ -19,12 +19,14 @@ public class OnlineUserGateway implements OnlineUserDataAccess {
     // Constructor with dependency injection (DIP compliance)
     public OnlineUserGateway(DatabaseConnectionProvider connectionProvider) {
         this.connectionProvider = connectionProvider;
+        LOGGER.setLevel(Level.WARNING); // Suppress info logs
     }
 
-    // Default constructor for backward compatibility
+    // Default constructor
     public OnlineUserGateway() {
         this.connectionProvider = DatabaseConnection.getInstance();
-    } // Implementation of DataAccessInterface methods
+        LOGGER.setLevel(Level.WARNING); // Suppress info logs
+    }
 
     @Override
     public boolean insert(OnlineUser user) {
@@ -48,10 +50,7 @@ public class OnlineUserGateway implements OnlineUserDataAccess {
             stmt.setString(4, user.getAddress());
 
             int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                LOGGER.info("User inserted successfully: " + user.getUsername());
-                return true;
-            }
+            return rowsAffected > 0;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error inserting online user: " + user.getUsername(), e);
         }
@@ -102,10 +101,7 @@ public class OnlineUserGateway implements OnlineUserDataAccess {
             stmt.setString(4, user.getUsername());
 
             int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                LOGGER.info("User updated successfully: " + user.getUsername());
-                return true;
-            }
+            return rowsAffected > 0;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error updating online user: " + user.getUsername(), e);
         }
@@ -125,15 +121,12 @@ public class OnlineUserGateway implements OnlineUserDataAccess {
 
             stmt.setString(1, username);
             int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                LOGGER.info("User deleted successfully: " + username);
-                return true;
-            }
+            return rowsAffected > 0;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error deleting online user: " + username, e);
         }
         return false;
-    } // Implementation of OnlineUserDataAccess specific methods
+    }
 
     @Override
     public boolean registerUser(OnlineUser user) {
@@ -153,14 +146,9 @@ public class OnlineUserGateway implements OnlineUserDataAccess {
 
             stmt.setString(1, username);
             stmt.setString(2, password);
+
             try (ResultSet rs = stmt.executeQuery()) {
-                boolean authenticated = rs.next();
-                if (authenticated) {
-                    LOGGER.info("User authenticated successfully: " + username);
-                } else {
-                    LOGGER.warning("Authentication failed for user: " + username);
-                }
-                return authenticated;
+                return rs.next();
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error authenticating user: " + username, e);
@@ -229,11 +217,7 @@ public class OnlineUserGateway implements OnlineUserDataAccess {
 
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getPassword());
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                LOGGER.info("User saved successfully: " + user.getUsername());
-                return true;
-            }
+            return stmt.executeUpdate() > 0;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error saving user: " + user.getUsername(), e);
         }

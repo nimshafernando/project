@@ -1,5 +1,7 @@
 package syos.data;
 
+import syos.interfaces.BillDataAccess;
+import syos.interfaces.DatabaseConnectionProvider;
 import syos.model.Bill;
 import syos.model.CartItem;
 import syos.util.BillStorage;
@@ -9,10 +11,27 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class BillGateway {
+/**
+ * BillGateway implementing BillDataAccess interface
+ * Follows SOLID principles for bill data operations
+ */
+public class BillGateway implements BillDataAccess {
 
-    public void saveBill(Bill bill) {
-        try (Connection conn = DatabaseConnection.getInstance().getPoolConnection()) {
+    private final DatabaseConnectionProvider connectionProvider;
+
+    // Constructor injection for DIP compliance
+    public BillGateway(DatabaseConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
+
+    // Default constructor for backward compatibility
+    public BillGateway() {
+        this.connectionProvider = DatabaseConnection.getInstance();
+    }
+
+    @Override
+    public boolean saveBill(Bill bill) {
+        try (Connection conn = connectionProvider.getPoolConnection()) {
             if (conn == null)
                 throw new SQLException("Connection returned null.");
 
@@ -56,10 +75,12 @@ public class BillGateway {
             }
 
             itemStmt.executeBatch();
+            return true;
 
         } catch (Exception e) {
             System.out.println("Failed to store bill in MySQL:");
             e.printStackTrace();
+            return false;
         }
     }
 }

@@ -69,7 +69,7 @@ public class BatchService {
                         batch.getSellingPrice(),
                         0 // Initial stock is 0, will be added when restocking from batch
                 );
-                if (!onlineItemGateway.insertItem(newItem)) {
+                if (!onlineItemGateway.insert(newItem)) {
                     throw new RuntimeException("Failed to create new item in online inventory.");
                 }
             } else {

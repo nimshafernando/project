@@ -1,6 +1,8 @@
 package syos.data;
 
 import syos.dto.ItemDTO;
+import syos.interfaces.OnlineBillDataAccess;
+import syos.interfaces.DatabaseConnectionProvider;
 import syos.model.Bill;
 import syos.model.CartItem;
 import syos.util.BillStorage;
@@ -10,13 +12,29 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OnlineBillGateway {
+/**
+ * OnlineBillGateway implementing OnlineBillDataAccess interface
+ * Follows SOLID principles for online bill data operations
+ */
+public class OnlineBillGateway implements OnlineBillDataAccess {
 
+    private final DatabaseConnectionProvider connectionProvider;
+
+    // Constructor injection for DIP compliance
+    public OnlineBillGateway(DatabaseConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    } // Default constructor for backward compatibility
+
+    public OnlineBillGateway() {
+        this.connectionProvider = DatabaseConnection.getInstance();
+    }
+
+    @Override
     public boolean saveOnlineBill(Bill bill, String username, String paymentMethod) {
         Connection conn = null;
 
         try {
-            conn = DatabaseConnection.getInstance().getPoolConnection();
+            conn = connectionProvider.getPoolConnection();
             if (conn == null)
                 return false;
 
@@ -43,6 +61,7 @@ public class OnlineBillGateway {
                 } catch (SQLException ignored) {
                 }
             }
+            System.out.println("Error saving online bill: " + e.getMessage());
             return false;
 
         } finally {
@@ -57,7 +76,7 @@ public class OnlineBillGateway {
     }
 
     private int insertBillAndGetId(Connection conn, Bill bill, String username, String paymentMethod)
-            throws SQLException {
+            throws Exception {
 
         String sql = "INSERT INTO online_bills (serial_number, username, time, total, source, payment_method, date) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -73,19 +92,19 @@ public class OnlineBillGateway {
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0)
-                throw new SQLException("Creating bill failed.");
+                throw new Exception("Creating bill failed.");
 
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     return generatedKeys.getInt(1);
                 } else {
-                    throw new SQLException("No ID obtained for bill.");
+                    throw new Exception("No ID obtained for bill.");
                 }
             }
         }
     }
 
-    private boolean saveOnlineBillItems(Connection conn, int billId, Bill bill) throws SQLException {
+    private boolean saveOnlineBillItems(Connection conn, int billId, Bill bill) throws Exception {
         String sql = "INSERT INTO online_bill_items (bill_id, item_code, quantity, price) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -108,11 +127,12 @@ public class OnlineBillGateway {
         }
     }
 
+    @Override
     public List<Bill> getBillsByUsername(String username) {
         List<Bill> bills = new ArrayList<>();
         String sql = "SELECT id, serial_number, payment_method, total, date FROM online_bills WHERE username = ? ORDER BY date DESC";
 
-        try (Connection conn = DatabaseConnection.getInstance().getPoolConnection();
+        try (Connection conn = connectionProvider.getPoolConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
@@ -128,12 +148,14 @@ public class OnlineBillGateway {
                 }
             }
 
-        } catch (SQLException ignored) {
+        } catch (Exception e) {
+            System.out.println("Error getting bills by username: " + e.getMessage());
         }
 
         return bills;
     }
 
+    @Override
     public List<CartItem> getItemsForBill(int billId) {
         List<CartItem> items = new ArrayList<>();
         String sql = "SELECT obi.item_code, obi.quantity, obi.price, oi.name " +
@@ -141,7 +163,7 @@ public class OnlineBillGateway {
                 "JOIN online_inventory oi ON obi.item_code = oi.item_code " +
                 "WHERE obi.bill_id = ?";
 
-        try (Connection conn = DatabaseConnection.getInstance().getPoolConnection();
+        try (Connection conn = connectionProvider.getPoolConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, billId);
@@ -157,7 +179,8 @@ public class OnlineBillGateway {
                 }
             }
 
-        } catch (SQLException ignored) {
+        } catch (Exception e) {
+            System.out.println("Error getting items for bill: " + e.getMessage());
         }
 
         return items;

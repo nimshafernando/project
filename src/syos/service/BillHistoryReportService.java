@@ -131,7 +131,7 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
                         0)); // Item count
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error fetching in-store bills: " + e.getMessage(), e);
         }
 
@@ -198,18 +198,11 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
                         0)); // Item count
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error fetching online bills: " + e.getMessage(), e);
         }
 
         return bills;
-    }
-
-    /**
-     * Original fetchOnlineBills method for backward compatibility
-     */
-    private List<BillHistoryDTO> fetchOnlineBills(DateFilter dateFilter, LocalDate startDate, LocalDate endDate) {
-        return fetchOnlineBills(dateFilter, startDate, endDate, PaymentMethodFilter.ALL_PAYMENT_METHODS);
     }
 
     /**
@@ -242,13 +235,6 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
 
         sql.append(" ORDER BY date DESC, time DESC");
         return sql.toString();
-    }
-
-    /**
-     * Original buildOnlineBillQuery for backward compatibility
-     */
-    private String buildOnlineBillQuery(DateFilter dateFilter) {
-        return buildOnlineBillQuery(dateFilter, PaymentMethodFilter.ALL_PAYMENT_METHODS);
     }
 
     /**

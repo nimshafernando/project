@@ -69,9 +69,10 @@ public class SalesReportService {
                         rs.getInt("total_qty"),
                         rs.getDouble("total_revenue")));
             }
-
         } catch (SQLException e) {
             System.out.println("Error fetching in-store bill data: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error getting database connection: " + e.getMessage());
         }
     }
 
@@ -119,9 +120,10 @@ public class SalesReportService {
                         rs.getInt("total_qty"),
                         rs.getDouble("total_revenue")));
             }
-
         } catch (SQLException e) {
             System.out.println("Error fetching online bill data: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error getting database connection: " + e.getMessage());
         }
     }
 

@@ -1,5 +1,6 @@
 package syos.util;
 
+import syos.interfaces.DatabaseConnectionProvider;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -15,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Implements SOLID principles: SRP (single responsibility for DB connections),
  * OCP (open for extension via interface), DIP (depends on abstractions)
  */
-public class DatabaseConnection {
+public class DatabaseConnection implements DatabaseConnectionProvider {
 
     // Singleton pattern implementation
     private static volatile DatabaseConnection instance;
@@ -102,9 +103,10 @@ public class DatabaseConnection {
      * Implements Object Pool pattern for resource management
      * 
      * @return Connection from pool
-     * @throws RuntimeException if unable to get connection
+     * @throws Exception if unable to get connection
      */
-    public Connection getPoolConnection() throws SQLException {
+    @Override
+    public Connection getPoolConnection() throws Exception {
         try {
             // Set a timeout of 10 seconds for getting connection
             Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -117,6 +119,17 @@ public class DatabaseConnection {
             System.out.println("Failed to get connection from pool: " + e.getMessage());
             throw e;
         }
+    }
+
+    /**
+     * Get single connection - implements interface requirement
+     * 
+     * @return Connection
+     * @throws Exception if unable to get connection
+     */
+    @Override
+    public Connection getConnection() throws Exception {
+        return getPoolConnection();
     }
 
     /**
@@ -144,23 +157,11 @@ public class DatabaseConnection {
     }
 
     /**
-     * Legacy method for backward compatibility
-     * Delegates to instance method while maintaining existing API
-     *
-     * @return Connection from pool
-     * @deprecated Use getInstance().getPoolConnection() instead
-     */
-    @Deprecated
-    public static Connection getConnection() throws SQLException {
-        return getInstance().getPoolConnection();
-    }
-
-    /**
-     * Static method with different name for clarity
+     * Static method for backward compatibility
      * 
      * @return Connection from pool
      */
-    public static Connection getStaticConnection() throws SQLException {
+    public static Connection getStaticConnection() throws Exception {
         return getInstance().getPoolConnection();
     }
 

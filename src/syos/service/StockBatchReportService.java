@@ -97,9 +97,10 @@ public class StockBatchReportService implements IReportService<StockBatchDTO> {
                         rs.getDate("expiry_date").toLocalDate(),
                         rs.getDouble("selling_price")));
             }
-
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching stock batches: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting database connection: " + e.getMessage(), e);
         }
 
         return batches;

@@ -49,6 +49,8 @@ public class ReshelvedItemsReportService implements IReportService<ReshelvedItem
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Error fetching reshelved items from log: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error getting database connection: " + ex.getMessage(), ex);
         }
         return list;
     }
@@ -69,7 +71,6 @@ public class ReshelvedItemsReportService implements IReportService<ReshelvedItem
                      GROUP BY rl.item_code, i.name
                      ORDER BY i.name
                 """;
-
         List<ReshelvedItemDTO> list = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getInstance().getPoolConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -86,6 +87,8 @@ public class ReshelvedItemsReportService implements IReportService<ReshelvedItem
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Error fetching reshelved items from log: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error getting database connection: " + ex.getMessage(), ex);
         }
         return list;
     }
@@ -103,8 +106,7 @@ public class ReshelvedItemsReportService implements IReportService<ReshelvedItem
                       JOIN online_inventory oi ON rl.item_code = oi.item_code
                      WHERE DATE(rl.reshelved_at) = ?
                        AND rl.store_type = 'ONLINE'
-                     GROUP BY rl.item_code, oi.name
-                     ORDER BY oi.name
+                     GROUP BY rl.item_code, oi.name                     ORDER BY oi.name
                 """;
 
         List<ReshelvedItemDTO> list = new ArrayList<>();
@@ -122,6 +124,8 @@ public class ReshelvedItemsReportService implements IReportService<ReshelvedItem
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Error fetching online reshelved items from log: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error getting database connection: " + ex.getMessage(), ex);
         }
         return list;
     }
@@ -159,6 +163,8 @@ public class ReshelvedItemsReportService implements IReportService<ReshelvedItem
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Error fetching online reshelved items from log: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error getting database connection: " + ex.getMessage(), ex);
         }
         return list;
     }
@@ -210,6 +216,8 @@ public class ReshelvedItemsReportService implements IReportService<ReshelvedItem
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Error fetching all reshelved items from log: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error getting database connection: " + ex.getMessage(), ex);
         }
         return list;
     }
@@ -262,6 +270,8 @@ public class ReshelvedItemsReportService implements IReportService<ReshelvedItem
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Error fetching all reshelved items from log: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error getting database connection: " + ex.getMessage(), ex);
         }
         return list;
     }

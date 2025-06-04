@@ -1,0 +1,6 @@
+projectKey=SYOS-PROJECT-NIMSHA
+serverUrl=http://localhost:9000
+serverVersion=25.5.0.107428
+dashboardUrl=http://localhost:9000/dashboard?id=SYOS-PROJECT-NIMSHA
+ceTaskId=c1d26b7a-a33e-440d-9d9a-67c51c9eaac5
+ceTaskUrl=http://localhost:9000/api/ce/task?id=c1d26b7a-a33e-440d-9d9a-67c51c9eaac5

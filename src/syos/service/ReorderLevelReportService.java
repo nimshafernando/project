@@ -83,7 +83,6 @@ public class ReorderLevelReportService implements IReportService<ReorderItemDTO>
                 WHERE quantity <= ?
                 ORDER BY quantity ASC, name
                 """;
-
         try (Connection conn = DatabaseConnection.getInstance().getPoolConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -103,6 +102,8 @@ public class ReorderLevelReportService implements IReportService<ReorderItemDTO>
 
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching in-store reorder items: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting database connection: " + e.getMessage(), e);
         }
 
         return items;
@@ -116,7 +117,6 @@ public class ReorderLevelReportService implements IReportService<ReorderItemDTO>
                 WHERE quantity <= ?
                 ORDER BY quantity ASC, name
                 """;
-
         try (Connection conn = DatabaseConnection.getInstance().getPoolConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -136,6 +136,8 @@ public class ReorderLevelReportService implements IReportService<ReorderItemDTO>
 
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching online reorder items: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting database connection: " + e.getMessage(), e);
         }
         return items;
     }

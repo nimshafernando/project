@@ -1,8 +1,9 @@
 package syos.ui;
 
 import syos.ui.controllers.EmployeeMainMenuController;
-import syos.ui.controllers.CustomerMainMenuController;
 import syos.util.ConsoleUtils;
+import syos.ui.controllers.CustomerMainMenuController;
+
 import java.util.Scanner;
 
 /**

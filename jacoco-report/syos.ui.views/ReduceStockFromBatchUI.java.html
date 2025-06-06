@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReduceStockFromBatchUI.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.ui.views</a> &gt; <span class="el_source">ReduceStockFromBatchUI.java</span></div><h1>ReduceStockFromBatchUI.java</h1><pre class="source lang-java linenums">package syos.ui.views;
+
+import syos.data.BatchGateway;
+import syos.data.ItemGateway;
+import syos.data.OnlineItemGateway;
+import syos.dto.ItemDTO;
+import syos.service.BatchService;
+import syos.service.OnlineBatchService;
+
+import java.util.List;
+import java.util.Scanner;
+
+import static syos.util.ConsoleUtils.clearScreen;
+import static syos.util.ConsoleUtils.pause;
+
+public class ReduceStockFromBatchUI {
+
+    private final Scanner scanner;
+
+<span class="nc" id="L20">    public ReduceStockFromBatchUI(Scanner scanner) {</span>
+<span class="nc" id="L21">        this.scanner = scanner;</span>
+<span class="nc" id="L22">    }</span>
+
+    public void start() {
+<span class="nc" id="L25">        BatchGateway batchGateway = new BatchGateway();</span>
+<span class="nc" id="L26">        ItemGateway itemGateway = new ItemGateway();</span>
+<span class="nc" id="L27">        OnlineItemGateway onlineItemGateway = new OnlineItemGateway();</span>
+<span class="nc" id="L28">        BatchService batchService = new BatchService(batchGateway, itemGateway);</span>
+<span class="nc" id="L29">        OnlineBatchService onlineBatchService = new OnlineBatchService(batchGateway, onlineItemGateway);</span>
+
+<span class="nc" id="L31">        clearScreen();</span>
+<span class="nc" id="L32">        System.out.println(&quot;-------------------------------------------&quot;);</span>
+<span class="nc" id="L33">        System.out.println(&quot;       RESTOCK FROM BATCH&quot;);</span>
+<span class="nc" id="L34">        System.out.println(&quot;-------------------------------------------&quot;);</span>
+<span class="nc" id="L35">        System.out.println(&quot;1. Restock In-Store Inventory&quot;);</span>
+<span class="nc" id="L36">        System.out.println(&quot;2. Restock Online Inventory&quot;);</span>
+<span class="nc" id="L37">        System.out.println(&quot;0. Back&quot;);</span>
+<span class="nc" id="L38">        System.out.println(&quot;-------------------------------------------&quot;);</span>
+<span class="nc" id="L39">        System.out.print(&quot;Choose destination: &quot;);</span>
+
+<span class="nc" id="L41">        String choice = scanner.nextLine().trim();</span>
+
+<span class="nc bnc" id="L43" title="All 4 branches missed.">        switch (choice) {</span>
+<span class="nc" id="L44">            case &quot;1&quot; -&gt; restockInStoreFromBatch(scanner, batchService);</span>
+<span class="nc" id="L45">            case &quot;2&quot; -&gt; restockOnlineFromBatch(scanner, onlineBatchService);</span>
+            case &quot;0&quot; -&gt; {
+<span class="nc" id="L47">                return;</span>
+            }
+            default -&gt; {
+<span class="nc" id="L50">                System.out.println(&quot;Invalid option. Please try again.&quot;);</span>
+<span class="nc" id="L51">                pause(scanner);</span>
+            }
+        }
+<span class="nc" id="L54">    }</span>
+
+    private void restockInStoreFromBatch(Scanner scanner, BatchService batchService) {
+<span class="nc" id="L57">        clearScreen();</span>
+<span class="nc" id="L58">        System.out.println(&quot;-------------------------------------------&quot;);</span>
+<span class="nc" id="L59">        System.out.println(&quot;    RESTOCK IN-STORE FROM BATCH&quot;);</span>
+<span class="nc" id="L60">        System.out.println(&quot;-------------------------------------------&quot;);</span>
+
+<span class="nc" id="L62">        ItemGateway itemGateway = new ItemGateway();</span>
+<span class="nc" id="L63">        List&lt;ItemDTO&gt; inStoreItems = itemGateway.getAllItems();</span>
+
+<span class="nc" id="L65">        System.out.println(&quot;\nCURRENT IN-STORE INVENTORY:&quot;);</span>
+<span class="nc" id="L66">        System.out.println(&quot;==============================================================&quot;);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (inStoreItems.isEmpty()) {</span>
+<span class="nc" id="L68">            System.out.println(&quot;No items in in-store inventory.&quot;);</span>
+        } else {
+<span class="nc" id="L70">            System.out.printf(&quot;%-12s %-30s %-12s %-10s%n&quot;, &quot;Code&quot;, &quot;Name&quot;, &quot;Price&quot;, &quot;Stock&quot;);</span>
+<span class="nc" id="L71">            System.out.println(&quot;--------------------------------------------------------------&quot;);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            for (ItemDTO item : inStoreItems) {</span>
+<span class="nc" id="L73">                System.out.printf(&quot;%-12s %-30s Rs.%-9.2f %-10d%n&quot;,</span>
+<span class="nc" id="L74">                        item.getCode(),</span>
+<span class="nc" id="L75">                        truncateString(item.getName(), 30),</span>
+<span class="nc" id="L76">                        item.getPrice(),</span>
+<span class="nc" id="L77">                        item.getQuantity());</span>
+<span class="nc" id="L78">            }</span>
+        }
+<span class="nc" id="L80">        System.out.println(&quot;==============================================================&quot;);</span>
+
+<span class="nc" id="L82">        System.out.print(&quot;\nEnter item code to restock from batch: &quot;);</span>
+<span class="nc" id="L83">        String itemCode = scanner.nextLine().trim().toUpperCase();</span>
+
+<span class="nc" id="L85">        System.out.print(&quot;Enter quantity to move to in-store shelf: &quot;);</span>
+        try {
+<span class="nc" id="L87">            int qtyToMove = Integer.parseInt(scanner.nextLine().trim());</span>
+
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (qtyToMove &lt;= 0) {</span>
+<span class="nc" id="L90">                System.out.println(&quot;Quantity must be positive.&quot;);</span>
+<span class="nc" id="L91">                pause(scanner);</span>
+<span class="nc" id="L92">                return;</span>
+            }
+
+<span class="nc" id="L95">            boolean success = batchService.restockItem(itemCode, qtyToMove);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (success) {</span>
+<span class="nc" id="L97">                System.out.println(&quot;\n Stock moved to in-store inventory successfully.&quot;);</span>
+            } else {
+<span class="nc" id="L99">                System.out.println(&quot;\n Not enough quantity in batches to fulfill the request.&quot;);</span>
+            }
+<span class="nc" id="L101">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L102">            System.out.println(&quot;Invalid quantity format.&quot;);</span>
+<span class="nc" id="L103">        }</span>
+
+<span class="nc" id="L105">        pause(scanner);</span>
+<span class="nc" id="L106">    }</span>
+
+    private void restockOnlineFromBatch(Scanner scanner, OnlineBatchService onlineBatchService) {
+<span class="nc" id="L109">        clearScreen();</span>
+<span class="nc" id="L110">        System.out.println(&quot;-------------------------------------------&quot;);</span>
+<span class="nc" id="L111">        System.out.println(&quot;     RESTOCK ONLINE FROM BATCH&quot;);</span>
+<span class="nc" id="L112">        System.out.println(&quot;-------------------------------------------&quot;);</span>
+
+<span class="nc" id="L114">        OnlineItemGateway onlineItemGateway = new OnlineItemGateway();</span>
+<span class="nc" id="L115">        List&lt;ItemDTO&gt; onlineItems = onlineItemGateway.getAllItems();</span>
+
+<span class="nc" id="L117">        System.out.println(&quot;\nCURRENT ONLINE INVENTORY:&quot;);</span>
+<span class="nc" id="L118">        System.out.println(&quot;==============================================================&quot;);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (onlineItems.isEmpty()) {</span>
+<span class="nc" id="L120">            System.out.println(&quot;No items in online inventory.&quot;);</span>
+        } else {
+<span class="nc" id="L122">            System.out.printf(&quot;%-12s %-30s %-12s %-10s%n&quot;, &quot;Code&quot;, &quot;Name&quot;, &quot;Price&quot;, &quot;Stock&quot;);</span>
+<span class="nc" id="L123">            System.out.println(&quot;--------------------------------------------------------------&quot;);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            for (ItemDTO item : onlineItems) {</span>
+<span class="nc" id="L125">                System.out.printf(&quot;%-12s %-30s Rs.%-9.2f %-10d%n&quot;,</span>
+<span class="nc" id="L126">                        item.getCode(),</span>
+<span class="nc" id="L127">                        truncateString(item.getName(), 30),</span>
+<span class="nc" id="L128">                        item.getPrice(),</span>
+<span class="nc" id="L129">                        item.getQuantity());</span>
+<span class="nc" id="L130">            }</span>
+        }
+<span class="nc" id="L132">        System.out.println(&quot;==============================================================&quot;);</span>
+
+<span class="nc" id="L134">        System.out.print(&quot;\nEnter item code to restock from batch: &quot;);</span>
+<span class="nc" id="L135">        String itemCode = scanner.nextLine().trim().toUpperCase();</span>
+
+<span class="nc" id="L137">        System.out.print(&quot;Enter quantity to move to online inventory: &quot;);</span>
+        try {
+<span class="nc" id="L139">            int qtyToMove = Integer.parseInt(scanner.nextLine().trim());</span>
+
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            if (qtyToMove &lt;= 0) {</span>
+<span class="nc" id="L142">                System.out.println(&quot;Quantity must be positive.&quot;);</span>
+<span class="nc" id="L143">                pause(scanner);</span>
+<span class="nc" id="L144">                return;</span>
+            }
+
+<span class="nc" id="L147">            boolean success = onlineBatchService.restockOnlineItem(itemCode, qtyToMove);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (success) {</span>
+<span class="nc" id="L149">                System.out.println(&quot;\nâœ“ Stock moved to online inventory successfully.&quot;);</span>
+            } else {
+<span class="nc" id="L151">                System.out.println(&quot;\nâœ— Not enough quantity in batches to fulfill the request.&quot;);</span>
+            }
+<span class="nc" id="L153">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L154">            System.out.println(&quot;Invalid quantity format.&quot;);</span>
+<span class="nc" id="L155">        }</span>
+
+<span class="nc" id="L157">        pause(scanner);</span>
+<span class="nc" id="L158">    }</span>
+
+    private String truncateString(String input, int maxLength) {
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        return (input.length() &lt;= maxLength) ? input : input.substring(0, maxLength - 3) + &quot;...&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

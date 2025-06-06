@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BatchService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.service</a> &gt; <span class="el_source">BatchService.java</span></div><h1>BatchService.java</h1><pre class="source lang-java linenums">package syos.service;
+
+import syos.data.BatchGateway;
+import syos.data.ItemGateway;
+import syos.data.OnlineItemGateway;
+import syos.data.ReshelvedLogGateway;
+import syos.dto.BatchDTO;
+import syos.dto.ItemDTO;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public class BatchService {
+    private final BatchGateway batchGateway;
+    private final ItemGateway itemGateway;
+    private final ReshelvedLogGateway reshelvedLogGateway;
+
+<span class="fc" id="L18">    public BatchService(BatchGateway batchGateway, ItemGateway itemGateway) {</span>
+<span class="fc" id="L19">        this.batchGateway = batchGateway;</span>
+<span class="fc" id="L20">        this.itemGateway = itemGateway;</span>
+<span class="fc" id="L21">        this.reshelvedLogGateway = new ReshelvedLogGateway();</span>
+<span class="fc" id="L22">    }</span>
+
+<span class="fc" id="L24">    public enum StoreType {</span>
+<span class="fc" id="L25">        IN_STORE, ONLINE</span>
+    }
+
+    public boolean addNewBatch(BatchDTO batch, StoreType storeType) {
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        if (batch.getQuantity() &lt;= 0)</span>
+<span class="fc" id="L30">            throw new IllegalArgumentException(&quot;Quantity must be positive.&quot;);</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (batch.getExpiryDate().isBefore(batch.getPurchaseDate()))</span>
+<span class="fc" id="L32">            throw new IllegalArgumentException(&quot;Expiry cannot be before purchase date.&quot;);</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (batch.getExpiryDate().isBefore(LocalDate.now()))</span>
+<span class="fc" id="L34">            throw new IllegalArgumentException(&quot;Cannot add batch that is already expired.&quot;);</span>
+
+<span class="fc" id="L36">        ItemDTO existingItem = null;</span>
+
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (storeType == StoreType.IN_STORE) {</span>
+            // Check if item exists in items table
+<span class="fc" id="L40">            existingItem = itemGateway.getItemByCode(batch.getItemCode());</span>
+
+<span class="fc bfc" id="L42" title="All 2 branches covered.">            if (existingItem == null) {</span>
+                // Create new item in items table
+<span class="fc" id="L44">                ItemDTO newItem = new ItemDTO(</span>
+<span class="fc" id="L45">                        batch.getItemCode(),</span>
+<span class="fc" id="L46">                        batch.getName(),</span>
+<span class="fc" id="L47">                        batch.getSellingPrice(),</span>
+                        0 // Initial stock is 0, will be added when restocking from batch
+                );
+<span class="fc bfc" id="L50" title="All 2 branches covered.">                if (!itemGateway.insertItem(newItem)) {</span>
+<span class="fc" id="L51">                    throw new RuntimeException(&quot;Failed to create new item in in-store inventory.&quot;);</span>
+                }
+<span class="fc" id="L53">            } else {</span>
+                // Update existing item's price if different
+<span class="fc bfc" id="L55" title="All 2 branches covered.">                if (existingItem.getPrice() != batch.getSellingPrice()) {</span>
+<span class="fc" id="L56">                    itemGateway.updateItemPrice(batch.getItemCode(), batch.getSellingPrice());</span>
+                }
+            }
+        } else { // ONLINE
+            // Check if item exists in online_inventory table
+<span class="fc" id="L61">            OnlineItemGateway onlineItemGateway = new OnlineItemGateway();</span>
+<span class="fc" id="L62">            existingItem = onlineItemGateway.getItemByCode(batch.getItemCode());</span>
+
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">            if (existingItem == null) {</span>
+                // Create new item in online_inventory table
+<span class="nc" id="L66">                ItemDTO newItem = new ItemDTO(</span>
+<span class="nc" id="L67">                        batch.getItemCode(),</span>
+<span class="nc" id="L68">                        batch.getName(),</span>
+<span class="nc" id="L69">                        batch.getSellingPrice(),</span>
+                        0 // Initial stock is 0, will be added when restocking from batch
+                );
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                if (!onlineItemGateway.insert(newItem)) {</span>
+<span class="nc" id="L73">                    throw new RuntimeException(&quot;Failed to create new item in online inventory.&quot;);</span>
+                }
+<span class="nc" id="L75">            } else {</span>
+                // Update existing item's price if different
+<span class="fc bfc" id="L77" title="All 2 branches covered.">                if (existingItem.getPrice() != batch.getSellingPrice()) {</span>
+<span class="fc" id="L78">                    onlineItemGateway.updateItemPrice(batch.getItemCode(), batch.getSellingPrice());</span>
+                }
+            }
+        }
+
+<span class="fc" id="L83">        return batchGateway.insertBatch(batch);</span>
+    }
+
+    /**
+     * Add batch stock - wrapper method for batch insertion
+     *
+     * @param batch BatchDTO to add to the system
+     * @return true if batch was successfully added, false otherwise
+     */
+    public boolean addBatchStock(BatchDTO batch) {
+<span class="fc" id="L93">        return batchGateway.insertBatch(batch);</span>
+    }
+
+    /**
+     * Get expired batches - delegates to existing getAllExpiredBatches method
+     *
+     * @return List of expired batches
+     */
+    public List&lt;BatchDTO&gt; getExpiredBatches() {
+<span class="fc" id="L102">        return batchGateway.getExpiredBatchesAll(LocalDate.now());</span>
+    }
+
+    public List&lt;BatchDTO&gt; getAllExpiredBatches() {
+<span class="nc" id="L106">        return batchGateway.getExpiredBatchesAll(LocalDate.now());</span>
+    }
+
+    public boolean archiveAndRemoveBatch(BatchDTO batch) {
+<span class="fc" id="L110">        return batchGateway.deleteExpiredBatch(batch);</span>
+    }
+
+    public boolean restockItem(String itemCode, int quantityToRestock) {
+<span class="fc" id="L114">        List&lt;BatchDTO&gt; batches = batchGateway.getAvailableBatchesForItem(itemCode);</span>
+
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (batches.isEmpty())</span>
+<span class="fc" id="L117">            return false;</span>
+
+        // THIS IS WHERE EXPIRY-FIRST SORTING HAPPENS
+<span class="fc" id="L120">        batches.sort((b1, b2) -&gt; {</span>
+<span class="fc" id="L121">            int expiryCompare = b1.getExpiryDate().compareTo(b2.getExpiryDate());</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">            return expiryCompare != 0 ? expiryCompare : b1.getPurchaseDate().compareTo(b2.getPurchaseDate());</span>
+        });
+        // END OF EXPIRY-FIRST LOGIC
+
+<span class="fc" id="L126">        int remainingQty = quantityToRestock;</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        for (BatchDTO batch : batches) {</span>
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">            if (remainingQty &lt;= 0)</span>
+<span class="nc" id="L129">                break;</span>
+
+<span class="fc" id="L131">            int available = batch.getQuantity() - batch.getUsedQuantity();</span>
+<span class="fc" id="L132">            int toUse = Math.min(available, remainingQty);</span>
+
+<span class="fc bfc" id="L134" title="All 2 branches covered.">            if (toUse &gt; 0) {</span>
+<span class="fc" id="L135">                batchGateway.reduceBatchQuantity(itemCode, batch.getPurchaseDate(), toUse);</span>
+<span class="fc" id="L136">                itemGateway.increaseStock(itemCode, toUse);</span>
+<span class="fc" id="L137">                reshelvedLogGateway.logReshelving(itemCode, toUse, ReshelvedLogGateway.StoreType.INSTORE);</span>
+<span class="fc" id="L138">                remainingQty -= toUse;</span>
+            }
+<span class="fc" id="L140">        }</span>
+
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        return remainingQty == 0;</span>
+    }
+
+    public List&lt;BatchDTO&gt; getExpiredBatchesWithNames() {
+<span class="fc" id="L146">        return batchGateway.getExpiredBatchesWithItemNames(LocalDate.now());</span>
+    }
+
+    public boolean deleteExpiredBatch(BatchDTO batch) {
+<span class="fc" id="L150">        return batchGateway.deleteExpiredBatch(batch);</span>
+    }
+
+    public void autoCleanupExpiredBatches() {
+<span class="fc" id="L154">        List&lt;BatchDTO&gt; expiredBatches = batchGateway.getExpiredBatchesAll(LocalDate.now());</span>
+
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        if (!expiredBatches.isEmpty()) {</span>
+<span class="fc" id="L157">            System.out.println(&quot;Auto-cleanup: Found &quot; + expiredBatches.size() + &quot; expired batch(es) to archive...&quot;);</span>
+
+<span class="fc" id="L159">            int archivedCount = 0;</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">            for (BatchDTO batch : expiredBatches) {</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">                if (batchGateway.deleteExpiredBatch(batch)) {</span>
+<span class="fc" id="L162">                    archivedCount++;</span>
+<span class="fc" id="L163">                    System.out.printf(&quot;Archived: Item %s, Qty: %d, Expired: %s\n&quot;,</span>
+<span class="fc" id="L164">                            batch.getItemCode(), batch.getQuantity(), batch.getExpiryDate());</span>
+                }
+<span class="fc" id="L166">            }</span>
+
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">            if (archivedCount &gt; 0) {</span>
+<span class="fc" id="L169">                System.out.println(&quot;Auto-cleanup completed: &quot; + archivedCount + &quot; batch(es) archived.&quot;);</span>
+            } else {
+<span class="nc" id="L171">                System.out.println(&quot;No expired batches found to archive.&quot;);</span>
+            }
+<span class="fc" id="L173">        } else {</span>
+<span class="fc" id="L174">            System.out.println(&quot;No expired batches found.&quot;);</span>
+        }
+<span class="fc" id="L176">    }</span>
+
+    public List&lt;BatchDTO&gt; getArchivedExpiredBatches() {
+<span class="fc" id="L179">        return batchGateway.getArchivedExpiredBatches();</span>
+    }
+
+    public boolean clearArchivedExpiredBatches() {
+<span class="fc" id="L183">        return batchGateway.clearArchivedExpiredBatches();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

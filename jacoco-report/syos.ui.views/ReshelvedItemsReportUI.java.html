@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReshelvedItemsReportUI.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.ui.views</a> &gt; <span class="el_source">ReshelvedItemsReportUI.java</span></div><h1>ReshelvedItemsReportUI.java</h1><pre class="source lang-java linenums">package syos.ui.views;
+
+import syos.dto.ReshelvedItemDTO;
+import syos.service.ReshelvedItemsReportService;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+
+public class ReshelvedItemsReportUI extends AbstractReportUI&lt;ReshelvedItemDTO&gt; {
+
+<span class="nc" id="L12">    private final ReshelvedItemsReportService service = new ReshelvedItemsReportService();</span>
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private StoreFilter storeFilter;
+    private DateRangeFilter dateRangeFilter;
+
+<span class="nc" id="L18">    public enum StoreFilter {</span>
+<span class="nc" id="L19">        IN_STORE_ONLY, ONLINE_ONLY, COMBINED</span>
+    }
+
+<span class="nc" id="L22">    public enum DateRangeFilter {</span>
+<span class="nc" id="L23">        TODAY, THIS_WEEK, THIS_MONTH, SPECIFIC_DATE_RANGE</span>
+    }
+
+    public ReshelvedItemsReportUI(Scanner scanner) {
+<span class="nc" id="L27">        super(scanner);</span>
+<span class="nc" id="L28">    }</span>
+
+    @Override
+    protected String getReportTitle() {
+<span class="nc" id="L32">        return &quot;SYOS RESHELVED ITEMS REPORT&quot;;</span>
+    }
+
+    @Override
+    protected boolean gatherReportCriteria() {
+        try {
+<span class="nc" id="L38">            Map&lt;String, StoreFilter&gt; storeOptions = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L39">            storeOptions.put(&quot;1&quot;, StoreFilter.IN_STORE_ONLY);</span>
+<span class="nc" id="L40">            storeOptions.put(&quot;2&quot;, StoreFilter.ONLINE_ONLY);</span>
+<span class="nc" id="L41">            storeOptions.put(&quot;3&quot;, StoreFilter.COMBINED);</span>
+<span class="nc" id="L42">            storeOptions.put(&quot;0&quot;, null);</span>
+<span class="nc" id="L43">            storeFilter = promptFilter(&quot;Store Type&quot;, storeOptions);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">            if (storeFilter == null)</span>
+<span class="nc" id="L45">                return false;</span>
+
+<span class="nc" id="L47">            clearScreen();</span>
+
+<span class="nc" id="L49">            Map&lt;String, DateRangeFilter&gt; dateOptions = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L50">            dateOptions.put(&quot;1&quot;, DateRangeFilter.TODAY);</span>
+<span class="nc" id="L51">            dateOptions.put(&quot;2&quot;, DateRangeFilter.THIS_WEEK);</span>
+<span class="nc" id="L52">            dateOptions.put(&quot;3&quot;, DateRangeFilter.THIS_MONTH);</span>
+<span class="nc" id="L53">            dateOptions.put(&quot;4&quot;, DateRangeFilter.SPECIFIC_DATE_RANGE);</span>
+<span class="nc" id="L54">            dateOptions.put(&quot;0&quot;, null);</span>
+<span class="nc" id="L55">            dateRangeFilter = promptFilter(&quot;Date Range&quot;, dateOptions);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">            if (dateRangeFilter == null)</span>
+<span class="nc" id="L57">                return false;</span>
+
+<span class="nc" id="L59">            clearScreen();</span>
+
+<span class="nc bnc" id="L61" title="All 2 branches missed.">            if (!setDatesFromFilter())</span>
+<span class="nc" id="L62">                return false;</span>
+
+<span class="nc" id="L64">            clearScreen();</span>
+<span class="nc" id="L65">            return true;</span>
+
+<span class="nc" id="L67">        } catch (Exception e) {</span>
+<span class="nc" id="L68">            System.out.println(&quot;Error gathering criteria: &quot; + e.getMessage());</span>
+<span class="nc" id="L69">            e.printStackTrace();</span>
+<span class="nc" id="L70">            return false;</span>
+        }
+    }
+
+    private &lt;T&gt; T promptFilter(String label, Map&lt;String, T&gt; options) {
+        while (true) {
+<span class="nc" id="L76">            System.out.println(&quot;Select &quot; + label + &quot;:&quot;);</span>
+<span class="nc" id="L77">            options.forEach((key, value) -&gt; System.out</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                    .println(&quot;  &quot; + key + &quot;. &quot; + (value != null ? value.toString().replace(&quot;_&quot;, &quot; &quot;) : &quot;Back&quot;)));</span>
+<span class="nc" id="L79">            System.out.print(&quot;Choice: &quot;);</span>
+<span class="nc" id="L80">            String input = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (options.containsKey(input))</span>
+<span class="nc" id="L82">                return options.get(input);</span>
+<span class="nc" id="L83">            System.out.println(&quot;[Invalid] Please enter a valid option.&quot;);</span>
+<span class="nc" id="L84">        }</span>
+    }
+
+    private boolean setDatesFromFilter() {
+<span class="nc" id="L88">        LocalDate today = LocalDate.now();</span>
+
+<span class="nc bnc" id="L90" title="All 4 branches missed.">        return switch (dateRangeFilter) {</span>
+            case TODAY -&gt; {
+<span class="nc" id="L92">                startDate = endDate = today;</span>
+<span class="nc" id="L93">                yield true;</span>
+            }
+            case THIS_WEEK -&gt; {
+<span class="nc" id="L96">                startDate = today.minusDays(today.getDayOfWeek().getValue() - 1);</span>
+<span class="nc" id="L97">                endDate = today;</span>
+<span class="nc" id="L98">                yield true;</span>
+            }
+            case THIS_MONTH -&gt; {
+<span class="nc" id="L101">                startDate = today.withDayOfMonth(1);</span>
+<span class="nc" id="L102">                endDate = today;</span>
+<span class="nc" id="L103">                yield true;</span>
+            }
+<span class="nc" id="L105">            case SPECIFIC_DATE_RANGE -&gt; promptSpecificDateRange();</span>
+        };
+    }
+
+    private boolean promptSpecificDateRange() {
+<span class="nc" id="L110">        System.out.println(&quot;Enter Start Date:&quot;);</span>
+<span class="nc" id="L111">        startDate = promptDate();</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (startDate == null)</span>
+<span class="nc" id="L113">            return false;</span>
+
+<span class="nc" id="L115">        System.out.println(&quot;Enter End Date:&quot;);</span>
+<span class="nc" id="L116">        endDate = promptDate();</span>
+<span class="nc bnc" id="L117" title="All 4 branches missed.">        if (endDate == null || endDate.isBefore(startDate)) {</span>
+<span class="nc" id="L118">            System.out.println(&quot;End date cannot be before start date!&quot;);</span>
+<span class="nc" id="L119">            return false;</span>
+        }
+
+<span class="nc" id="L122">        return true;</span>
+    }
+
+    private LocalDate promptDate() {
+        while (true) {
+<span class="nc" id="L127">            System.out.print(&quot;Enter date (yyyy-MM-dd) or press Enter to go back: &quot;);</span>
+<span class="nc" id="L128">            String input = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            if (input.isEmpty())</span>
+<span class="nc" id="L130">                return null;</span>
+
+            try {
+<span class="nc" id="L133">                return LocalDate.parse(input);</span>
+<span class="nc" id="L134">            } catch (DateTimeParseException e) {</span>
+<span class="nc" id="L135">                System.out.println(&quot;[Invalid] Use format yyyy-MM-dd (e.g., 2025-06-03).&quot;);</span>
+            }
+<span class="nc" id="L137">        }</span>
+    }
+
+    @Override
+    protected List&lt;ReshelvedItemDTO&gt; fetchReportItems() {
+<span class="nc bnc" id="L142" title="All 6 branches missed.">        if (storeFilter == null || startDate == null || endDate == null) {</span>
+<span class="nc" id="L143">            throw new IllegalStateException(&quot;Cannot fetch data: storeFilter, startDate, or endDate is null.&quot;);</span>
+        }
+
+<span class="nc bnc" id="L146" title="All 3 branches missed.">        return switch (storeFilter) {</span>
+<span class="nc" id="L147">            case IN_STORE_ONLY -&gt; service.getReshelvedItemsForInStoreRange(startDate, endDate);</span>
+<span class="nc" id="L148">            case ONLINE_ONLY -&gt; service.getReshelvedItemsForOnlineRange(startDate, endDate);</span>
+<span class="nc" id="L149">            case COMBINED -&gt; service.getAllReshelvedItemsRange(startDate, endDate);</span>
+        };
+    }
+
+    @Override
+    protected void renderReport(List&lt;ReshelvedItemDTO&gt; items) {
+<span class="nc" id="L155">        System.out.println(&quot;==============================================&quot;);</span>
+<span class="nc" id="L156">        System.out.println(&quot;      SYOS DAILY RESHELVED ITEMS REPORT      &quot;);</span>
+<span class="nc" id="L157">        System.out.println(&quot;        (Items Moved from Batch to Shelf)    &quot;);</span>
+<span class="nc" id="L158">        System.out.println(&quot;==============================================&quot;);</span>
+<span class="nc" id="L159">        System.out.println(&quot;Date Range: &quot; + formatDateRange());</span>
+<span class="nc" id="L160">        System.out.println(&quot;Store Type: &quot; + getStoreTypeDescription());</span>
+<span class="nc" id="L161">        System.out.println(&quot;----------------------------------------------&quot;);</span>
+
+<span class="nc" id="L163">        printTableHeader();</span>
+
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (items.isEmpty()) {</span>
+<span class="nc" id="L166">            System.out.println(&quot;No reshelving activities found for the selected criteria.&quot;);</span>
+        } else {
+<span class="nc" id="L168">            int total = 0;</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            for (ReshelvedItemDTO dto : items) {</span>
+<span class="nc" id="L170">                printRow(dto);</span>
+<span class="nc" id="L171">                total += dto.getQuantity();</span>
+<span class="nc" id="L172">            }</span>
+<span class="nc" id="L173">            System.out.println(&quot;----------------------------------------------&quot;);</span>
+<span class="nc" id="L174">            System.out.printf(&quot;Total Items Reshelved from Batches: %d%n&quot;, total);</span>
+        }
+
+<span class="nc" id="L177">        System.out.println(&quot;==============================================&quot;);</span>
+<span class="nc" id="L178">    }</span>
+
+    private void printTableHeader() {
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (storeFilter == StoreFilter.COMBINED) {</span>
+<span class="nc" id="L182">            System.out.printf(&quot;%-10s %-40s %8s%n&quot;, &quot;Code&quot;, &quot;Name&quot;, &quot;Quantity&quot;);</span>
+        } else {
+<span class="nc" id="L184">            System.out.printf(&quot;%-10s %-30s %8s%n&quot;, &quot;Code&quot;, &quot;Name&quot;, &quot;Quantity&quot;);</span>
+        }
+<span class="nc" id="L186">        System.out.println(&quot;----------------------------------------------&quot;);</span>
+<span class="nc" id="L187">    }</span>
+
+    private void printRow(ReshelvedItemDTO dto) {
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (storeFilter == StoreFilter.COMBINED) {</span>
+<span class="nc" id="L191">            System.out.printf(&quot;%-10s %-40s %8d%n&quot;,</span>
+<span class="nc" id="L192">                    dto.getCode(), truncateName(dto.getName(), 40), dto.getQuantity());</span>
+        } else {
+<span class="nc" id="L194">            System.out.printf(&quot;%-10s %-30s %8d%n&quot;,</span>
+<span class="nc" id="L195">                    dto.getCode(), truncateName(dto.getName(), 30), dto.getQuantity());</span>
+        }
+<span class="nc" id="L197">    }</span>
+
+    private String formatDateRange() {
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        return startDate.equals(endDate)</span>
+<span class="nc" id="L201">                ? startDate.toString()</span>
+<span class="nc" id="L202">                : startDate + &quot; to &quot; + endDate;</span>
+    }
+
+    private String getStoreTypeDescription() {
+<span class="nc bnc" id="L206" title="All 3 branches missed.">        return switch (storeFilter) {</span>
+<span class="nc" id="L207">            case IN_STORE_ONLY -&gt; &quot;In-Store Reshelving Only&quot;;</span>
+<span class="nc" id="L208">            case ONLINE_ONLY -&gt; &quot;Online Reshelving Only&quot;;</span>
+<span class="nc" id="L209">            case COMBINED -&gt; &quot;Combined (In-Store + Online)&quot;;</span>
+        };
+    }
+
+    private String truncateName(String name, int maxLength) {
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        return name.length() &lt;= maxLength ? name : name.substring(0, maxLength - 3) + &quot;...&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

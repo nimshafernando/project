@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CheckoutAndBillingController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.ui.controllers</a> &gt; <span class="el_source">CheckoutAndBillingController.java</span></div><h1>CheckoutAndBillingController.java</h1><pre class="source lang-java linenums">package syos.ui.controllers;
+
+import syos.model.Employee;
+import syos.model.Bill;
+import syos.model.CartItem;
+import syos.dto.ItemDTO;
+import syos.service.POS;
+import syos.data.ItemGateway;
+import syos.data.BillGateway;
+import syos.util.BillStorage;
+import syos.util.ConsoleUtils;
+import syos.util.EmployeeSession;
+
+import java.util.List;
+import java.util.Scanner;
+
+<span class="nc" id="L17">public class CheckoutAndBillingController {</span>
+
+    public static void launch(Scanner scanner, ItemGateway gateway, POS pos, Employee employee) {
+        while (true) {
+<span class="nc" id="L21">            ConsoleUtils.clearScreen();</span>
+<span class="nc" id="L22">            showEmployeeHeader();</span>
+
+<span class="nc" id="L24">            System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L25">            System.out.println(&quot;         CHECKOUT AND BILLING MODULE&quot;);</span>
+<span class="nc" id="L26">            System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L27">            System.out.printf(&quot;Cashier: %s (%s)\n&quot;, employee.getDisplayName(), employee.getEmployeeId());</span>
+<span class="nc" id="L28">            System.out.println(&quot;-------------------------------------------&quot;);</span>
+
+            // â”€â”€â”€ Step 0: Display Available Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            try {
+<span class="nc" id="L32">                List&lt;ItemDTO&gt; allItems = gateway.getAllItems();</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">                if (allItems.isEmpty()) {</span>
+<span class="nc" id="L34">                    System.out.println(&quot;No items available in inventory.&quot;);</span>
+<span class="nc" id="L35">                    ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L36">                    return;</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">                }</span>
+<span class="nc" id="L38"></span>
+<span class="nc" id="L39">                System.out.println(&quot;\nAVAILABLE ITEMS:&quot;);</span>
+<span class="nc" id="L40">                System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L41">                System.out.printf(&quot;%-10s %-30s %-10s %-10s\n&quot;, &quot;CODE&quot;, &quot;NAME&quot;, &quot;PRICE (Rs.)&quot;, &quot;STOCK&quot;);</span>
+<span class="nc" id="L42">                System.out.println(&quot;------------------------------------------------------------------&quot;);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">                for (ItemDTO item : allItems) {</span>
+<span class="nc" id="L44">                    System.out.printf(&quot;%-10s %-30s %-10.2f %-10d\n&quot;,</span>
+<span class="nc" id="L45">                            item.getCode(),</span>
+<span class="nc" id="L46">                            truncateString(item.getName(), 30),</span>
+<span class="nc" id="L47">                            item.getPrice(),</span>
+<span class="nc" id="L48">                            item.getQuantity());</span>
+<span class="nc" id="L49">                }</span>
+<span class="nc" id="L50">                System.out.println(&quot;------------------------------------------------------------------&quot;);</span>
+<span class="nc" id="L51">            } catch (Exception e) {</span>
+<span class="nc" id="L52">                System.out.println(&quot;Error loading items: &quot; + e.getMessage());</span>
+<span class="nc" id="L53">                ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L54">                return;</span>
+<span class="nc" id="L55">            }</span>
+
+            // â”€â”€â”€ Step 1: Scan Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+<span class="nc" id="L58">            while (true) {</span>
+<span class="nc" id="L59">                System.out.print(&quot;\nEnter item code (or type 'checkout' to proceed): &quot;);</span>
+<span class="nc" id="L60">                String code = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L61" title="All 4 branches missed.">                if (code.isEmpty())</span>
+<span class="nc" id="L62">                    return; // Silent return to main menu</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">                if (code.equalsIgnoreCase(&quot;checkout&quot;))</span>
+<span class="nc" id="L64">                    break;</span>
+<span class="nc" id="L65"></span>
+<span class="nc" id="L66">                ItemDTO item = gateway.getItemByCode(code);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                if (item == null) {</span>
+<span class="nc" id="L68">                    System.out.println(&quot;Item not found in inventory.&quot;);</span>
+<span class="nc" id="L69">                    continue;</span>
+                }
+
+<span class="nc" id="L72">                System.out.print(&quot;Enter quantity: &quot;);</span>
+                int quantity;
+                try {
+<span class="nc" id="L75">                    quantity = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                    if (quantity &lt;= 0) {</span>
+<span class="nc" id="L77">                        System.out.println(&quot;Quantity must be a positive integer.&quot;);</span>
+<span class="nc" id="L78">                        continue;</span>
+                    }
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                    if (quantity &gt; item.getQuantity()) {</span>
+<span class="nc" id="L81">                        System.out.printf(&quot;Only %d units available in stock.\n&quot;, item.getQuantity());</span>
+<span class="nc" id="L82">                        continue;</span>
+                    }
+<span class="nc" id="L84">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L85">                    System.out.println(&quot;Invalid quantity. Please enter a valid number.&quot;);</span>
+<span class="nc" id="L86">                    continue;</span>
+<span class="nc" id="L87">                }</span>
+<span class="nc" id="L88"></span>
+<span class="nc" id="L89">                pos.addToCart(item, quantity);</span>
+<span class="nc" id="L90">                System.out.printf(&quot;Added %d x %s at Rs. %.2f each\n&quot;,</span>
+<span class="nc" id="L91">                        quantity, item.getName(), item.getPrice());</span>
+<span class="nc" id="L92">                System.out.printf(&quot;Current total: Rs. %.2f\n&quot;, pos.getCartTotal());</span>
+<span class="nc" id="L93">            }</span>
+
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            if (pos.getCartItems().isEmpty()) {</span>
+<span class="nc" id="L96">                System.out.println(&quot;\nNo items in cart. Cancelling transaction.&quot;);</span>
+<span class="nc" id="L97">                ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L98">                return;</span>
+            }
+<span class="nc" id="L100"></span>
+            // â”€â”€â”€ Step 2: Apply Discount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+<span class="nc" id="L102">            double totalBeforeDiscount = pos.getCartTotal();</span>
+<span class="nc" id="L103">            System.out.printf(&quot;\nTotal before discount: Rs. %.2f\n&quot;, totalBeforeDiscount);</span>
+<span class="nc" id="L104"></span>
+            double discount;
+            try {
+<span class="nc" id="L107">                System.out.print(&quot;Enter discount (e.g. 10 or 10%): &quot;);</span>
+<span class="nc" id="L108">                String discountInput = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                if (discountInput.endsWith(&quot;%&quot;)) {</span>
+<span class="nc" id="L110">                    double percent = Double.parseDouble(discountInput.replace(&quot;%&quot;, &quot;&quot;));</span>
+<span class="nc" id="L111">                    discount = totalBeforeDiscount * (percent / 100.0);</span>
+<span class="nc" id="L112">                } else {</span>
+<span class="nc" id="L113">                    discount = Double.parseDouble(discountInput);</span>
+                }
+<span class="nc" id="L115">            } catch (Exception e) {</span>
+<span class="nc" id="L116">                System.out.println(&quot;Invalid discount format. Assuming no discount.&quot;);</span>
+<span class="nc" id="L117">                discount = 0.0;</span>
+<span class="nc" id="L118">            }</span>
+
+<span class="nc" id="L120">            double totalAfterDiscount = totalBeforeDiscount - discount;</span>
+<span class="nc" id="L121">            System.out.printf(&quot;Discount applied: Rs. %.2f\n&quot;, discount);</span>
+<span class="nc" id="L122">            System.out.printf(&quot;Total after discount: Rs. %.2f\n&quot;, totalAfterDiscount);</span>
+
+            // â”€â”€â”€ Step 3: Payment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+<span class="nc" id="L125">            System.out.print(&quot;Enter cash tendered: &quot;);</span>
+            double cash;
+<span class="nc" id="L127">            try {</span>
+<span class="nc" id="L128">                cash = Double.parseDouble(scanner.nextLine());</span>
+<span class="nc" id="L129">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L130">                System.out.println(&quot;Invalid cash amount entered. Cancelling transaction.&quot;);</span>
+<span class="nc" id="L131">                return;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            }</span>
+<span class="nc" id="L133"></span>
+<span class="nc" id="L134">            // â”€â”€â”€ Step 4: Finalize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</span>
+<span class="nc" id="L135">            try {</span>
+<span class="nc" id="L136">                Bill bill = pos.checkout(cash, discount);</span>
+
+<span class="nc" id="L138">                BillGateway billGateway = new BillGateway();</span>
+<span class="nc" id="L139">                billGateway.saveBill(bill);</span>
+<span class="nc" id="L140">                BillStorage.save(bill);</span>
+<span class="nc" id="L141"></span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                for (CartItem cartItem : bill.getItems()) {</span>
+<span class="nc" id="L143">                    gateway.reduceStock(cartItem.getItem().getCode(), cartItem.getQuantity());</span>
+<span class="nc" id="L144">                }</span>
+
+<span class="nc" id="L146">                System.out.println(&quot;\n-------------------------------------------&quot;);</span>
+<span class="nc" id="L147">                System.out.println(&quot;Transaction completed successfully.&quot;);</span>
+<span class="nc" id="L148">                System.out.println(&quot;Thank you for shopping at SYOS.&quot;);</span>
+<span class="nc" id="L149">                System.out.println(&quot;-------------------------------------------&quot;);</span>
+<span class="nc" id="L150">                ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L151">            } catch (IllegalArgumentException e) {</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                System.out.println(&quot;Error: &quot; + e.getMessage());</span>
+<span class="nc" id="L153">                ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L154">            }</span>
+<span class="nc" id="L155">        }</span>
+<span class="nc" id="L156">    }</span>
+<span class="nc" id="L157"></span>
+<span class="nc" id="L158">    private static String truncateString(String str, int maxLength) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (str == null)</span>
+<span class="nc" id="L160">            return &quot;&quot;;</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        return str.length() &lt;= maxLength ? str : str.substring(0, maxLength - 3) + &quot;...&quot;;</span>
+    }
+
+    private static void showEmployeeHeader() {
+<span class="nc" id="L165">        EmployeeSession session = EmployeeSession.getInstance();</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (session.isLoggedIn()) {</span>
+<span class="nc" id="L167">            System.out.println(&quot;+---------------------------------------------+&quot;);</span>
+<span class="nc" id="L168">            System.out.printf(&quot;| Cashier: %-35s |\n&quot;, session.getCurrentEmployeeName());</span>
+<span class="nc" id="L169">            System.out.printf(&quot;| ID: %-39s |\n&quot;, session.getEmployeeId());</span>
+<span class="nc" id="L170">            System.out.println(&quot;+---------------------------------------------+&quot;);</span>
+<span class="nc" id="L171"></span>
+        }
+<span class="nc bnc" id="L173" title="All 2 branches missed.">    }</span>
+<span class="nc" id="L174">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

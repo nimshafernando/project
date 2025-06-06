@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmployeeMainMenuController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.ui.controllers</a> &gt; <span class="el_source">EmployeeMainMenuController.java</span></div><h1>EmployeeMainMenuController.java</h1><pre class="source lang-java linenums">package syos.ui.controllers;
+
+import syos.data.EmployeeGateway;
+import syos.data.ItemGateway;
+import syos.model.Employee;
+import syos.service.POS;
+import syos.util.ConsoleUtils;
+import syos.util.EmployeeSession; // Add this import
+import java.util.Scanner;
+
+/**
+ * Employee Main Menu Controller
+ * Handles employee authentication and main menu navigation
+ * Implements SOLID principles: SRP (employee menu management),
+ * OCP (extensible menu options), DIP (depends on abstractions)
+ */
+<span class="nc" id="L17">public class EmployeeMainMenuController {</span>
+
+    public static void launch(Scanner scanner) {
+<span class="nc" id="L20">        EmployeeGateway employeeGateway = new EmployeeGateway();</span>
+
+        while (true) {
+<span class="nc" id="L23">            Employee authenticatedEmployee = authenticateEmployee(scanner, employeeGateway);</span>
+
+<span class="nc bnc" id="L25" title="All 4 branches missed.">            if (authenticatedEmployee != null &amp;&amp; authenticatedEmployee.isActive()) {</span>
+                // Start employee session after successful authentication
+<span class="nc" id="L27">                EmployeeSession.getInstance().loginEmployee(</span>
+<span class="nc" id="L28">                        authenticatedEmployee.getDisplayName(),</span>
+<span class="nc" id="L29">                        authenticatedEmployee.getEmployeeId(),</span>
+<span class="nc" id="L30">                        authenticatedEmployee.getRole());</span>
+
+<span class="nc" id="L32">                showEmployeePortal(scanner, authenticatedEmployee);</span>
+
+                // Logout from session when employee logs out
+<span class="nc" id="L35">                EmployeeSession.getInstance().logout();</span>
+            } else {
+<span class="nc" id="L37">                System.out.println(&quot;Access denied. Returning to main menu...&quot;);</span>
+<span class="nc" id="L38">                ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L39">                return; // Return to main menu</span>
+            }
+<span class="nc" id="L41">        }</span>
+    }
+
+    /**
+     * Employee authentication method
+     */
+    private static Employee authenticateEmployee(Scanner scanner, EmployeeGateway employeeGateway) {
+<span class="nc" id="L48">        ConsoleUtils.clearScreen();</span>
+<span class="nc" id="L49">        System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L50">        System.out.println(&quot;       EMPLOYEE AUTHENTICATION&quot;);</span>
+<span class="nc" id="L51">        System.out.println(&quot;===========================================&quot;);</span>
+
+<span class="nc" id="L53">        int attempts = 0;</span>
+        final int MAX_ATTEMPTS = 3;
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        while (attempts &lt; MAX_ATTEMPTS) {</span>
+<span class="nc" id="L57">            System.out.print(&quot;Enter Employee ID: &quot;);</span>
+<span class="nc" id="L58">            String employeeId = scanner.nextLine().trim();</span>
+
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            if (!isValidEmployeeId(employeeId)) {</span>
+<span class="nc" id="L61">                System.out.println(&quot;Invalid Employee ID format. Please enter 4 digits.&quot;);</span>
+<span class="nc" id="L62">                attempts++;</span>
+<span class="nc" id="L63">                continue;</span>
+            }
+
+<span class="nc" id="L66">            System.out.print(&quot;Enter PIN: &quot;);</span>
+<span class="nc" id="L67">            String pin = scanner.nextLine().trim();</span>
+
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (!isValidPin(pin)) {</span>
+<span class="nc" id="L70">                System.out.println(&quot;Invalid PIN format. Please enter 4 digits.&quot;);</span>
+<span class="nc" id="L71">                attempts++;</span>
+<span class="nc" id="L72">                continue;</span>
+            }
+
+<span class="nc" id="L75">            Employee employee = employeeGateway.authenticateEmployee(employeeId, pin);</span>
+
+<span class="nc bnc" id="L77" title="All 4 branches missed.">            if (employee != null &amp;&amp; employee.isActive()) {</span>
+<span class="nc" id="L78">                ConsoleUtils.clearScreen();</span>
+<span class="nc" id="L79">                System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L80">                System.out.println(&quot;       AUTHENTICATION SUCCESSFUL&quot;);</span>
+<span class="nc" id="L81">                System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L82">                System.out.printf(&quot;Welcome, %s!\n&quot;, employee.getDisplayName());</span>
+<span class="nc" id="L83">                System.out.printf(&quot;Employee ID: %s\n&quot;, employee.getEmployeeId());</span>
+<span class="nc" id="L84">                System.out.printf(&quot;Role: %s\n&quot;, employee.getRole());</span>
+<span class="nc" id="L85">                System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L86">                ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L87">                return employee;</span>
+            } else {
+<span class="nc" id="L89">                attempts++;</span>
+<span class="nc" id="L90">                System.out.printf(&quot;Incorrect Employee ID or PIN. (%d/%d attempts)\n&quot;,</span>
+<span class="nc" id="L91">                        attempts, MAX_ATTEMPTS);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                if (attempts &lt; MAX_ATTEMPTS) {</span>
+<span class="nc" id="L93">                    System.out.println(&quot;Please try again.\n&quot;);</span>
+                }
+            }
+<span class="nc" id="L96">        }</span>
+
+<span class="nc" id="L98">        System.out.println(&quot;Maximum authentication attempts exceeded.&quot;);</span>
+<span class="nc" id="L99">        System.out.println(&quot;Access denied for security reasons.&quot;);</span>
+<span class="nc" id="L100">        ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L101">        return null;</span>
+    }
+
+    /**
+     * Employee portal with authenticated employee context
+     */
+    private static void showEmployeePortal(Scanner scanner, Employee employee) {
+        while (true) {
+<span class="nc" id="L109">            ConsoleUtils.clearScreen();</span>
+<span class="nc" id="L110">            System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L111">            System.out.println(&quot;        SYOS - EMPLOYEE PORTAL&quot;);</span>
+<span class="nc" id="L112">            System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L113">            System.out.printf(&quot;Logged in as: %s (%s)\n&quot;,</span>
+<span class="nc" id="L114">                    employee.getDisplayName(), employee.getEmployeeId());</span>
+<span class="nc" id="L115">            System.out.printf(&quot;Role: %s  | Session: %s\n&quot;,</span>
+<span class="nc" id="L116">                    employee.getRole(),</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                    EmployeeSession.getInstance().isLoggedIn() ? &quot;Active&quot; : &quot;Inactive&quot;);</span>
+<span class="nc" id="L118">            System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L119">            System.out.println(&quot;1. Checkout and Billing&quot;);</span>
+<span class="nc" id="L120">            System.out.println(&quot;2. Inventory and Stock Operations&quot;);</span>
+<span class="nc" id="L121">            System.out.println(&quot;3. Reports&quot;);</span>
+<span class="nc" id="L122">            System.out.println(&quot;0. Logout&quot;);</span>
+<span class="nc" id="L123">            System.out.println(&quot;===========================================&quot;);</span>
+<span class="nc" id="L124">            System.out.print(&quot;Choose an option: &quot;);</span>
+
+<span class="nc" id="L126">            String choice = scanner.nextLine().trim();</span>
+
+<span class="nc bnc" id="L128" title="All 5 branches missed.">            switch (choice) {</span>
+                case &quot;1&quot; -&gt; {
+<span class="nc" id="L130">                    ItemGateway itemGateway = new ItemGateway();</span>
+<span class="nc" id="L131">                    POS pos = new POS();</span>
+<span class="nc" id="L132">                    CheckoutAndBillingController.launch(scanner, itemGateway, pos, employee);</span>
+<span class="nc" id="L133">                }</span>
+<span class="nc" id="L134">                case &quot;2&quot; -&gt; InventoryAndStockController.launch(scanner, employee);</span>
+<span class="nc" id="L135">                case &quot;3&quot; -&gt; ReportingMainMenuController.launch(scanner);</span>
+                case &quot;0&quot; -&gt; {
+<span class="nc" id="L137">                    System.out.printf(&quot;Goodbye, %s! Logging out...\n&quot;, employee.getDisplayName());</span>
+<span class="nc" id="L138">                    ConsoleUtils.pause(scanner);</span>
+<span class="nc" id="L139">                    return;</span>
+                }
+                default -&gt; {
+<span class="nc" id="L142">                    System.out.println(&quot;Invalid option. Please try again.&quot;);</span>
+<span class="nc" id="L143">                    ConsoleUtils.pause(scanner);</span>
+                }
+            }
+<span class="nc" id="L146">        }</span>
+    }
+
+    /**
+     * Validate Employee ID format (4 digits)
+     */
+    private static boolean isValidEmployeeId(String employeeId) {
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        return employeeId != null &amp;&amp;</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                employeeId.matches(&quot;\\d{4}&quot;) &amp;&amp;</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                employeeId.length() == 4;</span>
+    }
+
+    /**
+     * Validate PIN format (4 digits)
+     */
+    private static boolean isValidPin(String pin) {
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        return pin != null &amp;&amp;</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">                pin.matches(&quot;\\d{4}&quot;) &amp;&amp;</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                pin.length() == 4;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

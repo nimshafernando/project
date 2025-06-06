@@ -12,12 +12,18 @@ public class Employee {
     protected boolean isActive;
 
     // Constructor
+    // 4-arg constructor (used in real code)
     public Employee(String employeeId, String name, String pin, String role) {
+        this(employeeId, name, pin, role, true); // Delegates to 5-arg constructor
+    }
+
+    // 5-arg constructor (used in tests)
+    public Employee(String employeeId, String name, String pin, String role, boolean isActive) {
         this.employeeId = employeeId;
         this.name = name;
         this.pin = pin;
         this.role = role;
-        this.isActive = true;
+        this.isActive = isActive;
     }
 
     // Getters

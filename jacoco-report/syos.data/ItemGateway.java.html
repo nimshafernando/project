@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ItemGateway.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.data</a> &gt; <span class="el_source">ItemGateway.java</span></div><h1>ItemGateway.java</h1><pre class="source lang-java linenums">package syos.data;
+
+import syos.dto.ItemDTO;
+import syos.interfaces.ItemDataAccess;
+import syos.interfaces.DatabaseConnectionProvider;
+import syos.util.DatabaseConnection;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * ItemGateway implementing ItemDataAccess interface
+ * Follows SOLID principles for item data operations
+ */
+public class ItemGateway implements ItemDataAccess {
+
+    private final DatabaseConnectionProvider connectionProvider;
+
+    // Constructor injection for DIP compliance
+<span class="fc" id="L23">    public ItemGateway(DatabaseConnectionProvider connectionProvider) {</span>
+<span class="fc" id="L24">        this.connectionProvider = connectionProvider;</span>
+<span class="fc" id="L25">    }</span>
+
+    // Default constructor for backward compatibility
+<span class="fc" id="L28">    public ItemGateway() {</span>
+<span class="fc" id="L29">        this.connectionProvider = DatabaseConnection.getInstance();</span>
+<span class="fc" id="L30">    }</span>
+
+    // Implementation of DataAccessInterface methods
+
+    @Override
+    public boolean insert(ItemDTO item) {
+<span class="fc" id="L36">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L37">            String sql = &quot;INSERT INTO items (code, name, price, quantity, reorder_level) VALUES (?, ?, ?, ?, 10)&quot;;</span>
+<span class="fc" id="L38">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L39">            stmt.setString(1, item.getCode());</span>
+<span class="fc" id="L40">            stmt.setString(2, item.getName());</span>
+<span class="fc" id="L41">            stmt.setDouble(3, item.getPrice());</span>
+<span class="fc" id="L42">            stmt.setInt(4, item.getQuantity());</span>
+
+<span class="fc bfc" id="L44" title="All 2 branches covered.">            return stmt.executeUpdate() &gt; 0;</span>
+<span class="fc" id="L45">        } catch (Exception e) {</span>
+<span class="fc" id="L46">            System.out.println(&quot;Error inserting item: &quot; + e.getMessage());</span>
+<span class="fc" id="L47">            return false;</span>
+        }
+    }
+
+    @Override
+    public ItemDTO findById(String code) {
+<span class="fc" id="L53">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L54">            String sql = &quot;SELECT * FROM items WHERE code = ?&quot;;</span>
+<span class="fc" id="L55">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L56">            stmt.setString(1, code);</span>
+
+<span class="fc" id="L58">            ResultSet rs = stmt.executeQuery();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">            if (rs.next()) {</span>
+<span class="fc" id="L60">                return new ItemDTO(</span>
+<span class="fc" id="L61">                        rs.getString(&quot;code&quot;),</span>
+<span class="fc" id="L62">                        rs.getString(&quot;name&quot;),</span>
+<span class="fc" id="L63">                        rs.getDouble(&quot;price&quot;),</span>
+<span class="fc" id="L64">                        rs.getInt(&quot;quantity&quot;));</span>
+            } else {
+<span class="fc" id="L66">                return null; // not found</span>
+            }
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        } catch (Exception e) {</span>
+<span class="fc" id="L69">            System.out.println(&quot;Error finding item by code: &quot; + e.getMessage());</span>
+<span class="fc" id="L70">            return null;</span>
+        }
+    }
+
+    @Override
+    public List&lt;ItemDTO&gt; findAll() {
+<span class="fc" id="L76">        List&lt;ItemDTO&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L77">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L78">            String sql = &quot;SELECT code, name, price, quantity FROM items ORDER BY name&quot;;</span>
+<span class="fc" id="L79">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L80">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="fc bfc" id="L82" title="All 2 branches covered.">            while (rs.next()) {</span>
+<span class="fc" id="L83">                ItemDTO item = new ItemDTO(</span>
+<span class="fc" id="L84">                        rs.getString(&quot;code&quot;),</span>
+<span class="fc" id="L85">                        rs.getString(&quot;name&quot;),</span>
+<span class="fc" id="L86">                        rs.getDouble(&quot;price&quot;),</span>
+<span class="fc" id="L87">                        rs.getInt(&quot;quantity&quot;));</span>
+<span class="fc" id="L88">                items.add(item);</span>
+<span class="fc" id="L89">            }</span>
+<span class="fc" id="L90">        } catch (Exception e) {</span>
+<span class="fc" id="L91">            System.out.println(&quot;Error fetching items: &quot; + e.getMessage());</span>
+<span class="fc" id="L92">        }</span>
+<span class="fc" id="L93">        return items;</span>
+    }
+
+    @Override
+    public boolean update(ItemDTO item) {
+<span class="fc" id="L98">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L99">            String sql = &quot;UPDATE items SET name = ?, price = ?, quantity = ? WHERE code = ?&quot;;</span>
+<span class="fc" id="L100">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L101">            stmt.setString(1, item.getName());</span>
+<span class="fc" id="L102">            stmt.setDouble(2, item.getPrice());</span>
+<span class="fc" id="L103">            stmt.setInt(3, item.getQuantity());</span>
+<span class="fc" id="L104">            stmt.setString(4, item.getCode());</span>
+
+<span class="fc bfc" id="L106" title="All 2 branches covered.">            return stmt.executeUpdate() &gt; 0;</span>
+<span class="fc" id="L107">        } catch (Exception e) {</span>
+<span class="fc" id="L108">            System.out.println(&quot;Error updating item: &quot; + e.getMessage());</span>
+<span class="fc" id="L109">            return false;</span>
+        }
+    }
+
+    @Override
+    public boolean delete(String code) {
+<span class="fc" id="L115">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L116">            String sql = &quot;DELETE FROM items WHERE code = ?&quot;;</span>
+<span class="fc" id="L117">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L118">            stmt.setString(1, code);</span>
+
+<span class="fc bfc" id="L120" title="All 2 branches covered.">            return stmt.executeUpdate() &gt; 0;</span>
+<span class="fc" id="L121">        } catch (Exception e) {</span>
+<span class="fc" id="L122">            System.out.println(&quot;Error deleting item: &quot; + e.getMessage());</span>
+<span class="fc" id="L123">            return false;</span>
+        }
+    }
+
+    // Implementation of ItemDataAccess specific methods
+
+    @Override
+    public void reduceStock(String itemCode, int quantitySold) {
+<span class="fc" id="L131">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L132">            String sql = &quot;UPDATE items SET quantity = quantity - ? WHERE code = ? AND quantity &gt;= ?&quot;;</span>
+<span class="fc" id="L133">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L134">            stmt.setInt(1, quantitySold);</span>
+<span class="fc" id="L135">            stmt.setString(2, itemCode);</span>
+<span class="fc" id="L136">            stmt.setInt(3, quantitySold); // ensure we don't go negative</span>
+<span class="fc" id="L137">            int rows = stmt.executeUpdate();</span>
+
+<span class="fc bfc" id="L139" title="All 2 branches covered.">            if (rows == 0) {</span>
+<span class="fc" id="L140">                System.out.println(</span>
+                        &quot;Warning: Unable to reduce stock for item &quot; + itemCode + &quot; (possibly not enough stock)&quot;);
+            }
+<span class="fc" id="L143">        } catch (Exception e) {</span>
+<span class="fc" id="L144">            System.out.println(&quot;Error reducing stock: &quot; + e.getMessage());</span>
+<span class="fc" id="L145">        }</span>
+<span class="fc" id="L146">    }</span>
+
+    @Override
+    public void increaseStock(String itemCode, int amount) {
+<span class="fc" id="L150">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L151">            String sql = &quot;UPDATE items SET quantity = quantity + ? WHERE code = ?&quot;;</span>
+<span class="fc" id="L152">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L153">            stmt.setInt(1, amount);</span>
+<span class="fc" id="L154">            stmt.setString(2, itemCode);</span>
+<span class="fc" id="L155">            stmt.executeUpdate();</span>
+<span class="fc" id="L156">        } catch (Exception e) {</span>
+<span class="fc" id="L157">            System.out.println(&quot;Error increasing stock: &quot; + e.getMessage());</span>
+<span class="fc" id="L158">        }</span>
+<span class="fc" id="L159">    }</span>
+
+    @Override
+    public List&lt;ItemDTO&gt; getItemsBelowReorderLevel() {
+<span class="fc" id="L163">        List&lt;ItemDTO&gt; lowStockItems = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L165">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L166">            String sql = &quot;SELECT * FROM items WHERE quantity &lt;= reorder_level&quot;;</span>
+<span class="fc" id="L167">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L168">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="fc bfc" id="L170" title="All 2 branches covered.">            while (rs.next()) {</span>
+<span class="fc" id="L171">                ItemDTO item = new ItemDTO(</span>
+<span class="fc" id="L172">                        rs.getString(&quot;code&quot;),</span>
+<span class="fc" id="L173">                        rs.getString(&quot;name&quot;),</span>
+<span class="fc" id="L174">                        rs.getDouble(&quot;price&quot;),</span>
+<span class="fc" id="L175">                        rs.getInt(&quot;quantity&quot;));</span>
+<span class="fc" id="L176">                lowStockItems.add(item);</span>
+<span class="fc" id="L177">            }</span>
+<span class="fc" id="L178">        } catch (Exception e) {</span>
+<span class="fc" id="L179">            System.out.println(&quot;Error fetching items below reorder level: &quot; + e.getMessage());</span>
+<span class="fc" id="L180">        }</span>
+
+<span class="fc" id="L182">        return lowStockItems;</span>
+    }
+
+    @Override
+    public boolean updateItemPrice(String itemCode, double newPrice) {
+<span class="fc" id="L187">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L188">            String sql = &quot;UPDATE items SET price = ? WHERE code = ?&quot;;</span>
+<span class="fc" id="L189">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L190">            stmt.setDouble(1, newPrice);</span>
+<span class="fc" id="L191">            stmt.setString(2, itemCode);</span>
+
+<span class="fc" id="L193">            int rowsAffected = stmt.executeUpdate();</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">            if (rowsAffected &gt; 0) {</span>
+<span class="fc" id="L195">                System.out.printf(&quot;Updated price for item %s to Rs. %.2f\n&quot;, itemCode, newPrice);</span>
+            }
+<span class="fc bfc" id="L197" title="All 2 branches covered.">            return rowsAffected &gt; 0;</span>
+<span class="fc" id="L198">        } catch (Exception e) {</span>
+<span class="fc" id="L199">            System.out.println(&quot;Error updating item price: &quot; + e.getMessage());</span>
+<span class="fc" id="L200">            return false;</span>
+        }
+    }
+
+    // Additional helper methods (maintaining existing functionality)
+
+    public ItemDTO getItemByCode(String code) {
+<span class="fc" id="L207">        return findById(code); // Delegate to interface method</span>
+    }
+
+    public boolean insertItem(ItemDTO item) {
+<span class="fc" id="L211">        return insert(item); // Delegate to interface method</span>
+    }
+
+    public List&lt;ItemDTO&gt; getAllItems() {
+<span class="fc" id="L215">        return findAll(); // Delegate to interface method</span>
+    }
+
+    /**
+     * Get all items where quantity is below 50 (reorder alert threshold)
+     * Used for reorder level reporting and inventory management
+     *
+     * @return List of items requiring reorder attention
+     */
+    public List&lt;ItemDTO&gt; getReorderAlerts() {
+<span class="fc" id="L225">        List&lt;ItemDTO&gt; reorderItems = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L227">        try (Connection conn = connectionProvider.getPoolConnection()) {</span>
+<span class="fc" id="L228">            String sql = &quot;SELECT code, name, price, quantity FROM items WHERE quantity &lt; 50 ORDER BY quantity ASC, name&quot;;</span>
+<span class="fc" id="L229">            PreparedStatement stmt = conn.prepareStatement(sql);</span>
+<span class="fc" id="L230">            ResultSet rs = stmt.executeQuery();</span>
+
+<span class="fc bfc" id="L232" title="All 2 branches covered.">            while (rs.next()) {</span>
+<span class="fc" id="L233">                ItemDTO item = new ItemDTO(</span>
+<span class="fc" id="L234">                        rs.getString(&quot;code&quot;),</span>
+<span class="fc" id="L235">                        rs.getString(&quot;name&quot;),</span>
+<span class="fc" id="L236">                        rs.getDouble(&quot;price&quot;),</span>
+<span class="fc" id="L237">                        rs.getInt(&quot;quantity&quot;));</span>
+<span class="fc" id="L238">                reorderItems.add(item);</span>
+<span class="fc" id="L239">            }</span>
+<span class="fc" id="L240">        } catch (Exception e) {</span>
+<span class="fc" id="L241">            System.out.println(&quot;Error fetching reorder alerts: &quot; + e.getMessage());</span>
+<span class="fc" id="L242">        }</span>
+
+<span class="fc" id="L244">        return reorderItems;</span>
+    }
+
+    /**
+     * Updates reorder level for all items in the items table.
+     * Used by reorder level report to maintain consistent threshold values.
+     *
+     * @param newReorderLevel The new reorder level threshold
+     * @return true if update was successful, false otherwise
+     */
+    public boolean updateAllReorderLevels(int newReorderLevel) {
+<span class="fc" id="L255">        String sql = &quot;UPDATE items SET reorder_level = ?&quot;;</span>
+
+<span class="fc" id="L257">        try (Connection conn = connectionProvider.getPoolConnection();</span>
+<span class="fc" id="L258">                PreparedStatement stmt = conn.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L260">            stmt.setInt(1, newReorderLevel);</span>
+<span class="fc" id="L261">            int rowsAffected = stmt.executeUpdate();</span>
+
+<span class="fc bfc" id="L263" title="All 2 branches covered.">            if (rowsAffected &gt; 0) {</span>
+<span class="fc" id="L264">                System.out.printf(&quot;Updated reorder level for %d in-store items to %d units\n&quot;,</span>
+<span class="fc" id="L265">                        rowsAffected, newReorderLevel);</span>
+<span class="fc" id="L266">                return true;</span>
+            }
+
+<span class="pc bpc" id="L269" title="2 of 4 branches missed.">        } catch (Exception e) {</span>
+<span class="fc" id="L270">            System.out.println(&quot;Error updating in-store reorder levels: &quot; + e.getMessage());</span>
+<span class="fc" id="L271">        }</span>
+
+<span class="fc" id="L273">        return false;</span>
+    }
+
+    /**
+     * Updates reorder level for a specific item in the items table.
+     *
+     * @param itemCode        The item code to update
+     * @param newReorderLevel The new reorder level
+     * @return true if update was successful, false otherwise
+     */
+    public boolean updateItemReorderLevel(String itemCode, int newReorderLevel) {
+<span class="fc" id="L284">        String sql = &quot;UPDATE items SET reorder_level = ? WHERE code = ?&quot;;</span>
+
+<span class="fc" id="L286">        try (Connection conn = connectionProvider.getPoolConnection();</span>
+<span class="fc" id="L287">                PreparedStatement stmt = conn.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L289">            stmt.setInt(1, newReorderLevel);</span>
+<span class="fc" id="L290">            stmt.setString(2, itemCode);</span>
+<span class="fc" id="L291">            int rowsAffected = stmt.executeUpdate();</span>
+
+<span class="fc bfc" id="L293" title="All 2 branches covered.">            if (rowsAffected &gt; 0) {</span>
+<span class="fc" id="L294">                System.out.printf(&quot;Updated reorder level for item %s to %d units\n&quot;,</span>
+<span class="fc" id="L295">                        itemCode, newReorderLevel);</span>
+<span class="fc" id="L296">                return true;</span>
+            }
+
+<span class="pc bpc" id="L299" title="2 of 4 branches missed.">        } catch (Exception e) {</span>
+<span class="fc" id="L300">            System.out.println(&quot;Error updating item reorder level: &quot; + e.getMessage());</span>
+<span class="fc" id="L301">        }</span>
+
+<span class="fc" id="L303">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

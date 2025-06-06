@@ -6,6 +6,7 @@ import syos.util.DatabaseConnection;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,33 +17,20 @@ import java.util.List;
  */
 public class BillHistoryReportService implements IReportService<BillHistoryDTO> {
 
-    /**
-     * Enum to filter bill history by store type.
-     * Follows Strategy pattern for different filtering approaches.
-     */
     public enum StoreFilter {
         IN_STORE, ONLINE, ALL
     }
 
-    /**
-     * Enum to filter bill history by date range.
-     * Follows Strategy pattern for different time filtering approaches.
-     */
     public enum DateFilter {
         TODAY, THIS_WEEK, THIS_MONTH, ALL_TIME, CUSTOM_RANGE
     }
 
-    /**
-     * Enum to filter online bills by payment method.
-     * Strategy pattern for payment method filtering.
-     */
     public enum PaymentMethodFilter {
         ALL_PAYMENT_METHODS, CASH_ON_DELIVERY, PAY_IN_STORE
     }
 
     @Override
     public List<BillHistoryDTO> generateReport() {
-        // Default to all bills, all time
         return getBillHistory(StoreFilter.ALL);
     }
 
@@ -67,19 +55,26 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
         return "Bill History Report";
     }
 
-    /**
-     * Fetches bill history with optional filtering.
-     * Supports both in-store and online transactions.
-     */
     public List<BillHistoryDTO> getBillHistory(StoreFilter storeFilter) {
         return getBillHistory(storeFilter, DateFilter.ALL_TIME, null, null, PaymentMethodFilter.ALL_PAYMENT_METHODS);
     }
 
-    /**
-     * Fetches bill history with date range filtering.
-     */
+    public List<BillHistoryDTO> getBillHistory(StoreFilter storeFilter, DateFilter dateFilter) {
+        return getBillHistory(storeFilter, dateFilter, null, null, PaymentMethodFilter.ALL_PAYMENT_METHODS);
+    }
+
+    public List<BillHistoryDTO> getBillHistory(StoreFilter storeFilter, DateFilter dateFilter, LocalDate startDate,
+            LocalDate endDate) {
+        return getBillHistory(storeFilter, dateFilter, startDate, endDate, PaymentMethodFilter.ALL_PAYMENT_METHODS);
+    }
+
     public List<BillHistoryDTO> getBillHistory(StoreFilter storeFilter, DateFilter dateFilter,
-            LocalDate startDate, LocalDate endDate, PaymentMethodFilter paymentMethodFilter) {
+            PaymentMethodFilter paymentMethodFilter) {
+        return getBillHistory(storeFilter, dateFilter, null, null, paymentMethodFilter);
+    }
+
+    public List<BillHistoryDTO> getBillHistory(StoreFilter storeFilter, DateFilter dateFilter, LocalDate startDate,
+            LocalDate endDate, PaymentMethodFilter paymentMethodFilter) {
         List<BillHistoryDTO> history = new ArrayList<>();
 
         if (storeFilter == StoreFilter.IN_STORE || storeFilter == StoreFilter.ALL) {
@@ -90,7 +85,6 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
             history.addAll(fetchOnlineBills(dateFilter, startDate, endDate, paymentMethodFilter));
         }
 
-        // Sort by date descending, then by bill ID
         history.sort((a, b) -> {
             int dateComparison = b.getDateTime().compareTo(a.getDateTime());
             return dateComparison != 0 ? dateComparison : Integer.compare(b.getBillId(), a.getBillId());
@@ -99,10 +93,6 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
         return history;
     }
 
-    /**
-     * Fetches in-store bill history.
-     * DRY principle: Reusable SQL query building.
-     */
     private List<BillHistoryDTO> fetchInStoreBills(DateFilter dateFilter, LocalDate startDate, LocalDate endDate) {
         List<BillHistoryDTO> bills = new ArrayList<>();
         String sql = buildInStoreBillQuery(dateFilter);
@@ -112,40 +102,40 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
 
             setDateParameters(stmt, dateFilter, startDate, endDate, 1);
 
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                LocalDate date = rs.getDate("date").toLocalDate();
-                java.sql.Time time = rs.getTime("time");
-                java.time.LocalDateTime dateTime = date.atTime(time.toLocalTime());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Date sqlDate = rs.getDate("date");
+                    if (sqlDate == null) {
+                        continue;
+                    }
+                    LocalDate date = sqlDate.toLocalDate();
+                    Time time = rs.getTime("time");
+                    LocalDateTime dateTime = time != null ? date.atTime(time.toLocalTime()) : date.atStartOfDay();
 
-                bills.add(new BillHistoryDTO(
-                        rs.getInt("id"),
-                        "BILL-" + rs.getInt("id"),
-                        dateTime,
-                        rs.getDouble("total"),
-                        0.0, // Discount
-                        "IN_STORE",
-                        "CASH",
-                        null, // No customer info for in-store
-                        rs.getString("employee_name"), // Add employee name
-                        0)); // Item count
+                    bills.add(new BillHistoryDTO(
+                            rs.getInt("id"),
+                            "BILL-" + rs.getInt("id"),
+                            dateTime,
+                            rs.getDouble("total"),
+                            0.0,
+                            "IN_STORE",
+                            "CASH",
+                            null,
+                            rs.getString("employee_name"),
+                            0));
+                }
             }
-
         } catch (Exception e) {
-            throw new RuntimeException("Error fetching in-store bills: " + e.getMessage(), e);
+            // Log the error if needed, but return empty list to handle gracefully
+            return new ArrayList<>();
         }
 
         return bills;
     }
 
-    /**
-     * Builds SQL query for in-store bills with date filtering.
-     */
     private String buildInStoreBillQuery(DateFilter dateFilter) {
-        StringBuilder sql = new StringBuilder("""
-                SELECT id, date, time, total, employee_name
-                FROM bills
-                """);
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, date, time, total, employee_name FROM bills");
 
         if (dateFilter != DateFilter.ALL_TIME) {
             sql.append(" WHERE ");
@@ -153,13 +143,9 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
         }
 
         sql.append(" ORDER BY date DESC, time DESC");
-
         return sql.toString();
     }
 
-    /**
-     * Fetches online bill history with customer information.
-     */
     private List<BillHistoryDTO> fetchOnlineBills(DateFilter dateFilter, LocalDate startDate, LocalDate endDate,
             PaymentMethodFilter paymentMethodFilter) {
         List<BillHistoryDTO> bills = new ArrayList<>();
@@ -171,48 +157,41 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
             int paramIndex = setDateParameters(stmt, dateFilter, startDate, endDate, 1);
             setPaymentMethodParameters(stmt, paymentMethodFilter, paramIndex);
 
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                LocalDate date = rs.getDate("date").toLocalDate();
-                java.sql.Time time = rs.getTime("time");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Date sqlDate = rs.getDate("date");
+                    if (sqlDate == null) {
+                        continue;
+                    }
+                    LocalDate date = sqlDate.toLocalDate();
+                    Time time = rs.getTime("time");
+                    LocalDateTime dateTime = time != null ? date.atTime(time.toLocalTime()) : date.atStartOfDay();
 
-                // Handle null time values
-                java.time.LocalDateTime dateTime;
-                if (time != null) {
-                    dateTime = date.atTime(time.toLocalTime());
-                } else {
-                    dateTime = date.atStartOfDay();
+                    bills.add(new BillHistoryDTO(
+                            rs.getInt("id"),
+                            rs.getString("serial_number") != null ? rs.getString("serial_number")
+                                    : "ONLINE-" + rs.getInt("id"),
+                            dateTime,
+                            rs.getDouble("total"),
+                            0.0,
+                            "ONLINE",
+                            rs.getString("payment_method"),
+                            rs.getString("username"),
+                            null,
+                            0));
                 }
-
-                bills.add(new BillHistoryDTO(
-                        rs.getInt("id"),
-                        rs.getString("serial_number") != null ? rs.getString("serial_number")
-                                : "ONLINE-" + rs.getInt("id"),
-                        dateTime,
-                        rs.getDouble("total"),
-                        0.0, // Discount
-                        "ONLINE",
-                        rs.getString("payment_method"),
-                        rs.getString("username"), // Customer info for online
-                        null, // No employee for online bills
-                        0)); // Item count
             }
-
         } catch (Exception e) {
-            throw new RuntimeException("Error fetching online bills: " + e.getMessage(), e);
+            // Log the error if needed, but return empty list to handle gracefully
+            return new ArrayList<>();
         }
 
         return bills;
     }
 
-    /**
-     * Enhanced buildOnlineBillQuery with payment method filtering
-     */
     private String buildOnlineBillQuery(DateFilter dateFilter, PaymentMethodFilter paymentMethodFilter) {
-        StringBuilder sql = new StringBuilder("""
-                SELECT id, date, time, total, payment_method, username, serial_number
-                FROM online_bills
-                """);
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, date, time, total, payment_method, username, serial_number FROM online_bills");
 
         boolean hasDateCondition = (dateFilter != DateFilter.ALL_TIME);
         boolean hasPaymentCondition = (paymentMethodFilter != PaymentMethodFilter.ALL_PAYMENT_METHODS);
@@ -222,7 +201,6 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
 
             if (hasDateCondition) {
                 appendDateCondition(sql, dateFilter, "date");
-
                 if (hasPaymentCondition) {
                     sql.append(" AND ");
                 }
@@ -237,22 +215,16 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
         return sql.toString();
     }
 
-    /**
-     * Appends payment method condition to SQL query
-     */
     private void appendPaymentMethodCondition(StringBuilder sql, PaymentMethodFilter paymentMethodFilter) {
         switch (paymentMethodFilter) {
             case CASH_ON_DELIVERY -> sql.append("payment_method = ?");
             case PAY_IN_STORE -> sql.append("payment_method = ?");
             case ALL_PAYMENT_METHODS -> {
-                // No condition needed
+                // No condition
             }
         }
     }
 
-    /**
-     * Sets payment method parameters in prepared statement
-     */
     private int setPaymentMethodParameters(PreparedStatement stmt, PaymentMethodFilter paymentMethodFilter,
             int startIndex) throws SQLException {
         switch (paymentMethodFilter) {
@@ -265,35 +237,33 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
                 return startIndex + 1;
             }
             case ALL_PAYMENT_METHODS -> {
-                return startIndex; // No parameters to set
+                return startIndex;
             }
         }
         return startIndex;
     }
 
-    /**
-     * Appends date condition to SQL query based on filter type.
-     * DRY principle: Reusable date condition logic.
-     */
     private void appendDateCondition(StringBuilder sql, DateFilter dateFilter, String dateColumn) {
         switch (dateFilter) {
-            case TODAY -> sql.append(dateColumn).append(" = CURRENT_DATE");
-            case THIS_WEEK ->
-                sql.append(dateColumn).append(" >= DATE_SUB(CURRENT_DATE, INTERVAL WEEKDAY(CURRENT_DATE) DAY)")
-                        .append(" AND ").append(dateColumn).append(" <= CURRENT_DATE");
-            case THIS_MONTH -> sql.append("MONTH(").append(dateColumn).append(") = MONTH(CURRENT_DATE)")
-                    .append(" AND YEAR(").append(dateColumn).append(") = YEAR(CURRENT_DATE)");
+            case TODAY -> sql.append(dateColumn).append(" = CURDATE()");
+            case THIS_WEEK -> sql.append(dateColumn)
+                    .append(" BETWEEN DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AND CURDATE()");
+            case THIS_MONTH -> sql.append("YEAR(").append(dateColumn).append(") = YEAR(CURDATE()) AND MONTH(")
+                    .append(dateColumn).append(") = MONTH(CURDATE())");
             case CUSTOM_RANGE -> sql.append(dateColumn).append(" BETWEEN ? AND ?");
             case ALL_TIME -> {
-                /* No condition needed */ }
+                // No condition
+            }
         }
     }
 
     @Override
     public boolean isDataAvailable() {
-        try {
-            List<BillHistoryDTO> report = generateReport();
-            return report != null && !report.isEmpty();
+        try (Connection conn = DatabaseConnection.getInstance().getPoolConnection();
+                PreparedStatement stmt = conn
+                        .prepareStatement("SELECT 1 FROM bills UNION SELECT 1 FROM online_bills LIMIT 1");
+                ResultSet rs = stmt.executeQuery()) {
+            return rs.next();
         } catch (Exception e) {
             return false;
         }
@@ -321,7 +291,7 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
                         String.format("%.2f", bill.getTotalAmount()),
                         String.format("%.2f", bill.getDiscount()),
                         bill.getStoreType(),
-                        bill.getPaymentMethod(),
+                        bill.getPaymentMethod() != null ? bill.getPaymentMethod() : "N/A",
                         bill.getCustomerInfo() != null ? bill.getCustomerInfo() : "N/A",
                         String.valueOf(bill.getItemCount())))
                 .toList();
@@ -336,20 +306,16 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
                 item.getDateTime().toString(),
                 item.getTotalAmount(),
                 item.getStoreType(),
-                item.getPaymentMethod(),
+                item.getPaymentMethod() != null ? item.getPaymentMethod() : "N/A",
                 item.getCustomerInfo() != null ? item.getCustomerInfo() : "N/A");
     }
 
-    /**
-     * Sets date parameters in prepared statement based on filter type.
-     * DRY principle: Reusable parameter setting logic.
-     */
-    private int setDateParameters(PreparedStatement stmt, DateFilter dateFilter,
-            LocalDate startDate, LocalDate endDate, int startIndex) throws SQLException {
+    private int setDateParameters(PreparedStatement stmt, DateFilter dateFilter, LocalDate startDate, LocalDate endDate,
+            int startIndex) throws SQLException {
         if (dateFilter == DateFilter.CUSTOM_RANGE) {
             if (startDate != null && endDate != null) {
-                stmt.setDate(startIndex, java.sql.Date.valueOf(startDate));
-                stmt.setDate(startIndex + 1, java.sql.Date.valueOf(endDate));
+                stmt.setDate(startIndex, Date.valueOf(startDate));
+                stmt.setDate(startIndex + 1, Date.valueOf(endDate));
                 return startIndex + 2;
             } else {
                 throw new IllegalArgumentException("Start and end dates are required for custom range filter");

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OnlinePOS.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.service</a> &gt; <span class="el_source">OnlinePOS.java</span></div><h1>OnlinePOS.java</h1><pre class="source lang-java linenums">package syos.service;
+
+import syos.data.OnlineBillGateway;
+import syos.data.OnlineItemGateway;
+import syos.dto.ItemDTO;
+import syos.model.Bill;
+import syos.model.CartItem;
+import syos.model.OnlineUser;
+import syos.util.BillStorage;
+import syos.util.OnlineBillPrinter;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+public class OnlinePOS {
+    private List&lt;CartItem&gt; cartItems;
+    private OnlineItemGateway itemGateway;
+
+<span class="fc" id="L20">    public OnlinePOS() {</span>
+<span class="fc" id="L21">        this.cartItems = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L22">        this.itemGateway = new OnlineItemGateway();</span>
+<span class="fc" id="L23">    }</span>
+
+    public void addToCart(ItemDTO item, int quantity) {
+<span class="pc bpc" id="L26" title="1 of 4 branches missed.">        if (item == null || quantity &lt;= 0) {</span>
+<span class="fc" id="L27">            throw new IllegalArgumentException(&quot;Invalid item or quantity.&quot;);</span>
+        }
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        if (quantity &gt; item.getQuantity()) {</span>
+<span class="fc" id="L30">            throw new IllegalArgumentException(&quot;Not enough stock for item: &quot; + item.getName());</span>
+        }
+
+<span class="pc bfc" id="L33" title="All 2 branches covered.">        for (int i = 0; i &lt; cartItems.size(); i++) {</span>
+<span class="fc" id="L34">            CartItem cartItem = cartItems.get(i);</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">            if (cartItem.getItem().getCode().equals(item.getCode())) {</span>
+<span class="fc" id="L36">                cartItems.set(i, new CartItem(cartItem.getItem(), cartItem.getQuantity() + quantity));</span>
+<span class="fc" id="L37">                return;</span>
+            }
+        }
+<span class="fc" id="L40">        cartItems.add(new CartItem(item, quantity));</span>
+<span class="fc" id="L41">    }</span>
+
+    public double getCartTotal() {
+<span class="fc" id="L44">        double total = 0;</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        for (CartItem item : cartItems) {</span>
+<span class="fc" id="L46">            total += item.getTotalPrice();</span>
+<span class="fc" id="L47">        }</span>
+<span class="fc" id="L48">        return total;</span>
+    }
+
+    public Bill checkout(String paymentMethod, OnlineUser user) {
+        try {
+<span class="fc bfc" id="L53" title="All 2 branches covered.">            if (user == null) {</span>
+<span class="fc" id="L54">                throw new IllegalArgumentException(&quot;User is not logged in.&quot;);</span>
+            }
+
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">            if (cartItems.isEmpty()) {</span>
+<span class="fc" id="L58">                throw new IllegalArgumentException(&quot;Cart is empty.&quot;);</span>
+            }
+
+<span class="nc bnc" id="L61" title="All 2 branches missed.">            for (CartItem cartItem : cartItems) {</span>
+<span class="nc" id="L62">                ItemDTO currentItem = itemGateway.getItemByCode(cartItem.getItem().getCode());</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                if (currentItem == null) {</span>
+<span class="nc" id="L65">                    throw new IllegalArgumentException(&quot;Item not found: &quot; + cartItem.getItem().getName());</span>
+                }
+
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                if (currentItem.getQuantity() &lt; cartItem.getQuantity()) {</span>
+<span class="nc" id="L69">                    throw new IllegalArgumentException(&quot;Insufficient stock for item: &quot; + cartItem.getItem().getName());</span>
+                }
+<span class="nc" id="L71">            }</span>
+
+<span class="nc" id="L73">            double total = getCartTotal();</span>
+<span class="nc" id="L74">            int serial = BillStorage.getNextSerialForToday(LocalDateTime.now().toLocalDate(), true);</span>
+
+<span class="nc" id="L76">            Bill bill = new Bill(serial, LocalDateTime.now(), new ArrayList&lt;&gt;(cartItems), total, 0.0, 0.0, 0.0);</span>
+<span class="nc" id="L77">            bill.setSource(&quot;online&quot;);</span>
+<span class="nc" id="L78">            bill.setUsername(user.getUsername());</span>
+<span class="nc" id="L79">            bill.setPaymentMethod(paymentMethod);</span>
+
+<span class="nc" id="L81">            OnlineBillGateway gateway = new OnlineBillGateway();</span>
+<span class="nc" id="L82">            boolean saved = gateway.saveOnlineBill(bill, user.getUsername(), paymentMethod);</span>
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (!saved) {</span>
+<span class="nc" id="L85">                throw new RuntimeException(&quot;Failed to save online bill to database.&quot;);</span>
+            }
+
+<span class="nc" id="L88">            boolean stockReduced = itemGateway.reduceStockBatch(cartItems);</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (!stockReduced) {</span>
+<span class="nc" id="L91">                throw new RuntimeException(&quot;Failed to reduce stock for items.&quot;);</span>
+            }
+
+<span class="nc" id="L94">            OnlineBillPrinter.print(bill, paymentMethod, user.getUsername());</span>
+<span class="nc" id="L95">            clearCart();</span>
+
+<span class="nc" id="L97">            return bill;</span>
+
+<span class="fc" id="L99">        } catch (Exception e) {</span>
+<span class="fc" id="L100">            throw e;</span>
+        }
+    }
+
+    public List&lt;Bill&gt; getUserBills(String username) {
+        try {
+<span class="nc" id="L106">            return new OnlineBillGateway().getBillsByUsername(username);</span>
+<span class="nc" id="L107">        } catch (Exception e) {</span>
+<span class="nc" id="L108">            throw e;</span>
+        }
+    }
+
+    public Bill getDetailedBill(int billId) {
+        try {
+<span class="nc" id="L114">            OnlineBillGateway gateway = new OnlineBillGateway();</span>
+<span class="nc" id="L115">            List&lt;CartItem&gt; items = gateway.getItemsForBill(billId);</span>
+
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (items.isEmpty()) {</span>
+<span class="nc" id="L118">                return null;</span>
+            }
+
+<span class="nc" id="L121">            Bill bill = new Bill();</span>
+<span class="nc" id="L122">            bill.setId(billId);</span>
+<span class="nc" id="L123">            bill.setItems(items);</span>
+
+<span class="nc" id="L125">            double total = 0;</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            for (CartItem item : items) {</span>
+<span class="nc" id="L127">                total += item.getQuantity() * item.getItem().getPrice();</span>
+<span class="nc" id="L128">            }</span>
+<span class="nc" id="L129">            bill.setTotal(total);</span>
+
+<span class="nc" id="L131">            return bill;</span>
+
+<span class="nc" id="L133">        } catch (Exception e) {</span>
+<span class="nc" id="L134">            throw e;</span>
+        }
+    }
+
+    public List&lt;CartItem&gt; getCartItems() {
+<span class="fc" id="L139">        return new ArrayList&lt;&gt;(cartItems);</span>
+    }
+
+    public void clearCart() {
+<span class="fc" id="L143">        cartItems.clear();</span>
+<span class="fc" id="L144">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

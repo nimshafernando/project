@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BillHistoryDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.dto</a> &gt; <span class="el_source">BillHistoryDTO.java</span></div><h1>BillHistoryDTO.java</h1><pre class="source lang-java linenums">package syos.dto;
+
+import java.time.LocalDateTime;
+
+/**
+ * Data Transfer Object for bill history information.
+ * Follows SRP and immutability principles.
+ */
+public class BillHistoryDTO {
+    private final int billId;
+    private final String serialNumber;
+    private final LocalDateTime dateTime;
+    private final double totalAmount;
+    private final double discount;
+    private final String storeType;
+    private final String paymentMethod;
+    private final String customerInfo;
+    private final String employeeName; // Add this field
+    private final int itemCount;
+
+    public BillHistoryDTO(int billId, String serialNumber, LocalDateTime dateTime,
+            double totalAmount, double discount, String storeType,
+<span class="fc" id="L23">            String paymentMethod, String customerInfo, String employeeName, int itemCount) {</span>
+<span class="fc" id="L24">        this.billId = billId;</span>
+<span class="fc" id="L25">        this.serialNumber = serialNumber;</span>
+<span class="fc" id="L26">        this.dateTime = dateTime;</span>
+<span class="fc" id="L27">        this.totalAmount = totalAmount;</span>
+<span class="fc" id="L28">        this.discount = discount;</span>
+<span class="fc" id="L29">        this.storeType = storeType;</span>
+<span class="fc" id="L30">        this.paymentMethod = paymentMethod;</span>
+<span class="fc" id="L31">        this.customerInfo = customerInfo;</span>
+<span class="fc" id="L32">        this.employeeName = employeeName;</span>
+<span class="fc" id="L33">        this.itemCount = itemCount;</span>
+<span class="fc" id="L34">    }</span>
+
+    public int getBillId() {
+<span class="fc" id="L37">        return billId;</span>
+    }
+
+    public String getSerialNumber() {
+<span class="fc" id="L41">        return serialNumber;</span>
+    }
+
+    public LocalDateTime getDateTime() {
+<span class="nc" id="L45">        return dateTime;</span>
+    }
+
+    public double getTotalAmount() {
+<span class="fc" id="L49">        return totalAmount;</span>
+    }
+
+    public double getDiscount() {
+<span class="fc" id="L53">        return discount;</span>
+    }
+
+    public String getStoreType() {
+<span class="fc" id="L57">        return storeType;</span>
+    }
+
+    public String getPaymentMethod() {
+<span class="fc" id="L61">        return paymentMethod;</span>
+    }
+
+    public String getCustomerInfo() {
+<span class="fc" id="L65">        return customerInfo;</span>
+    }
+
+    public String getEmployeeName() {
+<span class="fc" id="L69">        return employeeName;</span>
+    }
+
+    public int getItemCount() {
+<span class="fc" id="L73">        return itemCount;</span>
+    }
+
+    public double getTotalBeforeDiscount() {
+<span class="fc" id="L77">        return totalAmount + discount;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

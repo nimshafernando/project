@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReshelvedLogDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.dto</a> &gt; <span class="el_source">ReshelvedLogDTO.java</span></div><h1>ReshelvedLogDTO.java</h1><pre class="source lang-java linenums">package syos.dto;
+
+import java.time.LocalDateTime;
+
+public class ReshelvedLogDTO {
+    private int id;
+    private String itemCode;
+    private int quantity;
+    private String storeType;
+    private LocalDateTime reshelvedAt;
+
+<span class="fc" id="L12">    public ReshelvedLogDTO(int id, String itemCode, int quantity, String storeType, LocalDateTime reshelvedAt) {</span>
+<span class="fc" id="L13">        this.id = id;</span>
+<span class="fc" id="L14">        this.itemCode = itemCode;</span>
+<span class="fc" id="L15">        this.quantity = quantity;</span>
+<span class="fc" id="L16">        this.storeType = storeType;</span>
+<span class="fc" id="L17">        this.reshelvedAt = reshelvedAt;</span>
+<span class="fc" id="L18">    }</span>
+
+    // Getters and setters
+    public int getId() {
+<span class="fc" id="L22">        return id;</span>
+    }
+
+    public void setId(int id) {
+<span class="fc" id="L26">        this.id = id;</span>
+<span class="fc" id="L27">    }</span>
+
+    public String getItemCode() {
+<span class="fc" id="L30">        return itemCode;</span>
+    }
+
+    public void setItemCode(String itemCode) {
+<span class="nc" id="L34">        this.itemCode = itemCode;</span>
+<span class="nc" id="L35">    }</span>
+
+    public int getQuantity() {
+<span class="fc" id="L38">        return quantity;</span>
+    }
+
+    public void setQuantity(int quantity) {
+<span class="nc" id="L42">        this.quantity = quantity;</span>
+<span class="nc" id="L43">    }</span>
+
+    public String getStoreType() {
+<span class="fc" id="L46">        return storeType;</span>
+    }
+
+    public void setStoreType(String storeType) {
+<span class="nc" id="L50">        this.storeType = storeType;</span>
+<span class="nc" id="L51">    }</span>
+
+    public LocalDateTime getReshelvedAt() {
+<span class="fc" id="L54">        return reshelvedAt;</span>
+    }
+
+    public void setReshelvedAt(LocalDateTime reshelvedAt) {
+<span class="nc" id="L58">        this.reshelvedAt = reshelvedAt;</span>
+<span class="nc" id="L59">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

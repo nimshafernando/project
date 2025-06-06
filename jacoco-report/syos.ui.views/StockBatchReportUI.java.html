@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StockBatchReportUI.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.ui.views</a> &gt; <span class="el_source">StockBatchReportUI.java</span></div><h1>StockBatchReportUI.java</h1><pre class="source lang-java linenums">package syos.ui.views;
+
+import syos.dto.StockBatchDTO;
+import syos.service.StockBatchReportService;
+import syos.service.StockBatchReportService.BatchFilter;
+import syos.service.StockBatchReportService.BatchSummary;
+
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Stock Batch Report UI.
+ * Extends AbstractReportUI following Template Method pattern.
+ * Shows batch-wise stock details with status and expiry information.
+ */
+public class StockBatchReportUI extends AbstractReportUI&lt;StockBatchDTO&gt; {
+
+<span class="nc" id="L18">    private final StockBatchReportService service = new StockBatchReportService();</span>
+    private BatchFilter batchFilter;
+    private String specificItemCode;
+    private boolean showSummary;
+
+    public StockBatchReportUI(Scanner scanner) {
+<span class="nc" id="L24">        super(scanner);</span>
+<span class="nc" id="L25">    }</span>
+
+    @Override
+    protected boolean gatherReportCriteria() {
+        try {
+<span class="nc" id="L30">            showReportOptions();</span>
+<span class="nc" id="L31">            batchFilter = promptBatchFilter();</span>
+
+            // Check if user chose to go back
+<span class="nc bnc" id="L34" title="All 2 branches missed.">            if (batchFilter == null) {</span>
+<span class="nc" id="L35">                return false; // User chose to go back to reports menu</span>
+            }
+
+<span class="nc" id="L38">            clearScreen();</span>
+
+<span class="nc bnc" id="L40" title="All 2 branches missed.">            if (batchFilter != BatchFilter.ALL) {</span>
+<span class="nc" id="L41">                specificItemCode = promptSpecificItem();</span>
+<span class="nc" id="L42">                clearScreen();</span>
+            }
+
+<span class="nc" id="L45">            showSummary = true; // Always show summary</span>
+<span class="nc" id="L46">            return true;</span>
+<span class="nc" id="L47">        } catch (Exception e) {</span>
+<span class="nc" id="L48">            System.out.println(&quot;Error gathering criteria: &quot; + e.getMessage());</span>
+<span class="nc" id="L49">            return false;</span>
+        }
+    }
+
+    @Override
+    protected String getReportTitle() {
+<span class="nc" id="L55">        return &quot;Stock Batch Report&quot;;</span>
+    }
+
+    /**
+     * Shows available report options to the user.
+     * KISS principle: Clear, simple information display.
+     */
+    private void showReportOptions() {
+<span class="nc" id="L63">        System.out.println(&quot;=== STOCK BATCH REPORT OPTIONS ===&quot;);</span>
+
+<span class="nc" id="L65">    }</span>
+
+    /**
+     * Prompts user to select batch filter criteria.
+     * Strategy pattern: Different filtering strategies.
+     */
+    private BatchFilter promptBatchFilter() {
+        while (true) {
+<span class="nc" id="L73">            System.out.println(&quot;Select Batch Filter:&quot;);</span>
+<span class="nc" id="L74">            System.out.println(&quot;  1. All Batches&quot;);</span>
+<span class="nc" id="L75">            System.out.println(&quot;  2. Active Batches Only&quot;);</span>
+<span class="nc" id="L76">            System.out.println(&quot;  3. Expiring Soon (â‰¤ 30 days)&quot;);</span>
+<span class="nc" id="L77">            System.out.println(&quot;  4. Expired Batches&quot;);</span>
+<span class="nc" id="L78">            System.out.println(&quot;  5. Depleted Batches&quot;);</span>
+<span class="nc" id="L79">            System.out.println(&quot;  0. Back to Reports Menu&quot;); // Added this line</span>
+<span class="nc" id="L80">            System.out.print(&quot;Choice (0-5): &quot;);</span>
+
+<span class="nc bnc" id="L82" title="All 7 branches missed.">            switch (scanner.nextLine().trim()) {</span>
+                case &quot;1&quot;:
+<span class="nc" id="L84">                    return BatchFilter.ALL;</span>
+                case &quot;2&quot;:
+<span class="nc" id="L86">                    return BatchFilter.ACTIVE_ONLY;</span>
+                case &quot;3&quot;:
+<span class="nc" id="L88">                    return BatchFilter.EXPIRING_SOON;</span>
+                case &quot;4&quot;:
+<span class="nc" id="L90">                    return BatchFilter.EXPIRED;</span>
+                case &quot;5&quot;:
+<span class="nc" id="L92">                    return BatchFilter.DEPLETED;</span>
+                case &quot;0&quot;:
+<span class="nc" id="L94">                    return null; // Return null to indicate user wants to go back</span>
+                default:
+<span class="nc" id="L96">                    System.out.println(&quot;[Invalid] Enter 0-5.&quot;);</span>
+<span class="nc" id="L97">            }</span>
+        }
+    }
+
+    /**
+     * Prompts for specific item code (optional).
+     * YAGNI principle: Simple optional filtering.
+     */
+    private String promptSpecificItem() {
+<span class="nc" id="L106">        System.out.print(&quot;Enter specific item code (or press Enter for all items): &quot;);</span>
+<span class="nc" id="L107">        String itemCode = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        return itemCode.isEmpty() ? null : itemCode.toUpperCase();</span>
+    }
+
+    @Override
+    protected List&lt;StockBatchDTO&gt; fetchReportItems() {
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (specificItemCode != null) {</span>
+<span class="nc" id="L114">            return service.getBatchesForItem(specificItemCode);</span>
+        }
+<span class="nc" id="L116">        return service.getStockBatches(batchFilter);</span>
+    }
+
+    @Override
+    protected void renderReport(List&lt;StockBatchDTO&gt; batches) {
+        // Show summary first if requested
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (showSummary) {</span>
+<span class="nc" id="L123">            renderSummary();</span>
+<span class="nc" id="L124">            System.out.println(&quot;&quot;);</span>
+        }
+
+<span class="nc" id="L127">        renderBatchDetails(batches);</span>
+<span class="nc" id="L128">    }</span>
+
+    /**
+     * Renders batch summary statistics.
+     * SRP: Focused on summary rendering only.
+     */
+    private void renderSummary() {
+<span class="nc" id="L135">        BatchSummary summary = service.getBatchSummary();</span>
+
+<span class="nc" id="L137">        System.out.println(&quot;============================== BATCH SUMMARY ==============================&quot;);</span>
+<span class="nc" id="L138">        System.out.printf(&quot;Total Batches: %-8d | Active: %-8d | Expiring Soon: %-8d%n&quot;,</span>
+<span class="nc" id="L139">                summary.getTotalBatches(), summary.getActiveBatches(), summary.getExpiringSoon());</span>
+<span class="nc" id="L140">        System.out.printf(&quot;Expired: %-13d | Depleted: %-6d%n&quot;,</span>
+<span class="nc" id="L141">                summary.getExpired(), summary.getDepleted());</span>
+<span class="nc" id="L142">        System.out.println(&quot;-------------------------------------------------------------------------------&quot;);</span>
+<span class="nc" id="L143">        System.out.printf(&quot;Total Stock: %-10d | Available: %-9d | Used: %-10d%n&quot;,</span>
+<span class="nc" id="L144">                summary.getTotalStock(), summary.getAvailableStock(), summary.getUsedStock());</span>
+<span class="nc" id="L145">        System.out.println(&quot;===============================================================================&quot;);</span>
+<span class="nc" id="L146">    }</span>
+
+    /**
+     * Renders detailed batch information.
+     * SRP: Focused on batch details rendering only.
+     */
+    private void renderBatchDetails(List&lt;StockBatchDTO&gt; batches) {
+<span class="nc" id="L153">        System.out</span>
+<span class="nc" id="L154">                .println(</span>
+                        &quot;======================================= STOCK BATCH DETAILS =======================================&quot;);
+<span class="nc" id="L156">        System.out.println(&quot;Filter: &quot; + getBatchFilterDescription());</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (specificItemCode != null) {</span>
+<span class="nc" id="L158">            System.out.println(&quot;Item Code: &quot; + specificItemCode);</span>
+        }
+<span class="nc" id="L160">        System.out.println(</span>
+                &quot;----------------------------------------------------------------------------------------------------&quot;);
+<span class="nc" id="L162">        System.out.printf(&quot;%-6s %-10s %-20s %-12s %-12s %-8s %-9s %-8s %-10s%n&quot;,</span>
+                &quot;S.No&quot;, &quot;Code&quot;, &quot;Name&quot;, &quot;Purchase&quot;, &quot;Expiry&quot;, &quot;Total&quot;, &quot;Available&quot;, &quot;Used&quot;, &quot;Price&quot;);
+<span class="nc" id="L164">        System.out.println(</span>
+                &quot;----------------------------------------------------------------------------------------------------&quot;);
+
+<span class="nc" id="L167">        int serialNo = 1;</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        for (StockBatchDTO batch : batches) {</span>
+<span class="nc" id="L169">            int availableQty = Math.max(0, batch.getAvailableQuantity()); // Prevent negative numbers</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            String itemName = batch.getItemName() != null</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">                    ? (batch.getItemName().length() &gt; 20 ? batch.getItemName().substring(0, 17) + &quot;...&quot;</span>
+<span class="nc" id="L172">                            : batch.getItemName())</span>
+<span class="nc" id="L173">                    : &quot;-&quot;;</span>
+
+<span class="nc" id="L175">            System.out.printf(&quot;%-6d %-10s %-20s %-12s %-12s %-8d %-9d %-8d Rs.%-7.2f%n&quot;,</span>
+<span class="nc" id="L176">                    serialNo++,</span>
+<span class="nc" id="L177">                    batch.getItemCode(),</span>
+                    itemName,
+<span class="nc" id="L179">                    batch.getPurchaseDate(),</span>
+<span class="nc" id="L180">                    batch.getExpiryDate(),</span>
+<span class="nc" id="L181">                    batch.getTotalQuantity(),</span>
+<span class="nc" id="L182">                    availableQty,</span>
+<span class="nc" id="L183">                    batch.getUsedQuantity(),</span>
+<span class="nc" id="L184">                    batch.getSellingPrice());</span>
+<span class="nc" id="L185">        }</span>
+
+<span class="nc" id="L187">        System.out.println(</span>
+                &quot;----------------------------------------------------------------------------------------------------&quot;);
+<span class="nc" id="L189">        System.out.printf(&quot;Total Batches Displayed: %d%n&quot;, batches.size());</span>
+
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (!batches.isEmpty()) {</span>
+<span class="nc" id="L192">            int totalStock = batches.stream().mapToInt(StockBatchDTO::getTotalQuantity).sum();</span>
+<span class="nc" id="L193">            int availableStock = batches.stream().mapToInt(b -&gt; Math.max(0, b.getAvailableQuantity())).sum();</span>
+<span class="nc" id="L194">            int usedStock = batches.stream().mapToInt(StockBatchDTO::getUsedQuantity).sum();</span>
+
+<span class="nc" id="L196">            System.out.printf(&quot;Total Stock in View: %d | Available: %d | Used: %d%n&quot;,</span>
+<span class="nc" id="L197">                    totalStock, availableStock, usedStock);</span>
+        }
+
+<span class="nc" id="L200">        System.out.println(</span>
+                &quot;====================================================================================================&quot;);
+<span class="nc" id="L202">    }</span>
+
+    /**
+     * Gets description of selected batch filter.
+     * KISS principle: Simple string mapping.
+     */
+    private String getBatchFilterDescription() {
+<span class="nc bnc" id="L209" title="All 5 branches missed.">        return switch (batchFilter) {</span>
+<span class="nc" id="L210">            case ALL -&gt; &quot;All Batches&quot;;</span>
+<span class="nc" id="L211">            case ACTIVE_ONLY -&gt; &quot;Active Batches Only&quot;;</span>
+<span class="nc" id="L212">            case EXPIRING_SOON -&gt; &quot;Expiring Soon (â‰¤ 30 days)&quot;;</span>
+<span class="nc" id="L213">            case EXPIRED -&gt; &quot;Expired Batches&quot;;</span>
+<span class="nc" id="L214">            case DEPLETED -&gt; &quot;Depleted Batches&quot;;</span>
+        };
+    }
+
+    @Override
+    protected void showNoDataMessage() {
+<span class="nc" id="L220">        System.out</span>
+<span class="nc" id="L221">                .println(</span>
+                        &quot;======================================= STOCK BATCH DETAILS =======================================&quot;);
+<span class="nc" id="L223">        System.out.println(&quot;Filter: &quot; + getBatchFilterDescription());</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (specificItemCode != null) {</span>
+<span class="nc" id="L225">            System.out.println(&quot;Item Code: &quot; + specificItemCode);</span>
+        }
+<span class="nc" id="L227">        System.out.println(&quot;&quot;);</span>
+<span class="nc" id="L228">        System.out.println(&quot;No batches found matching the selected criteria.&quot;);</span>
+<span class="nc" id="L229">        System.out.println(</span>
+                &quot;====================================================================================================&quot;);
+<span class="nc" id="L231">        waitForEnter();</span>
+<span class="nc" id="L232">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

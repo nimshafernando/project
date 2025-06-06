@@ -10,6 +10,7 @@ import syos.util.DatabaseConnection;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 /**
  * BillGateway implementing BillDataAccess interface
@@ -40,6 +41,7 @@ public class BillGateway implements BillDataAccess {
             LocalDate billDate = bill.getDate().toLocalDate();
             LocalTime billTime = bill.getDate().toLocalTime();
 
+            // Insert bill record
             String billSql = "INSERT INTO bills (bill_serial, date, time, total, discount, cash_tendered, change_due, employee_name) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement billStmt = conn.prepareStatement(billSql, Statement.RETURN_GENERATED_KEYS);
@@ -52,29 +54,35 @@ public class BillGateway implements BillDataAccess {
             billStmt.setDouble(7, bill.getChange());
             billStmt.setString(8, bill.getEmployeeName());
 
-            billStmt.executeUpdate();
+            int rowsAffected = billStmt.executeUpdate();
+            if (rowsAffected == 0)
+                throw new SQLException("Failed to insert bill.");
 
             ResultSet generatedKeys = billStmt.getGeneratedKeys();
             if (!generatedKeys.next())
                 throw new SQLException("Failed to retrieve bill ID.");
             int billId = generatedKeys.getInt(1);
 
-            String itemSql = "INSERT INTO bill_items (bill_id, item_code, item_name, quantity, price_per_unit, total_price) "
-                    +
-                    "VALUES (?, ?, ?, ?, ?, ?)";
-            PreparedStatement itemStmt = conn.prepareStatement(itemSql);
+            // Only insert bill items if present
+            List<CartItem> items = bill.getItems();
+            if (items != null && !items.isEmpty()) {
+                String itemSql = "INSERT INTO bill_items (bill_id, item_code, item_name, quantity, price_per_unit, total_price) "
+                        + "VALUES (?, ?, ?, ?, ?, ?)";
+                PreparedStatement itemStmt = conn.prepareStatement(itemSql);
 
-            for (CartItem item : bill.getItems()) {
-                itemStmt.setInt(1, billId);
-                itemStmt.setString(2, item.getItem().getCode());
-                itemStmt.setString(3, item.getItem().getName());
-                itemStmt.setInt(4, item.getQuantity());
-                itemStmt.setDouble(5, item.getItem().getPrice());
-                itemStmt.setDouble(6, item.getTotalPrice());
-                itemStmt.addBatch();
+                for (CartItem item : items) {
+                    itemStmt.setInt(1, billId);
+                    itemStmt.setString(2, item.getItem().getCode());
+                    itemStmt.setString(3, item.getItem().getName());
+                    itemStmt.setInt(4, item.getQuantity());
+                    itemStmt.setDouble(5, item.getItem().getPrice());
+                    itemStmt.setDouble(6, item.getTotalPrice());
+                    itemStmt.addBatch();
+                }
+
+                itemStmt.executeBatch();
             }
 
-            itemStmt.executeBatch();
             return true;
 
         } catch (Exception e) {

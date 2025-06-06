@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OnlineBillDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.dto</a> &gt; <span class="el_source">OnlineBillDTO.java</span></div><h1>OnlineBillDTO.java</h1><pre class="source lang-java linenums">package syos.dto;
+
+import java.time.LocalTime;
+import java.util.List;
+import syos.model.CartItem;
+
+public class OnlineBillDTO {
+    private String serial;
+    private String username;
+    private double total;
+    private double discount;
+    private double cash;
+    private double change;
+    private LocalTime time;
+    private List&lt;CartItem&gt; items;
+
+    public OnlineBillDTO(String serial, String username, double total, double discount,
+<span class="nc" id="L18">            double cash, double change, LocalTime time, List&lt;CartItem&gt; items) {</span>
+<span class="nc" id="L19">        this.serial = serial;</span>
+<span class="nc" id="L20">        this.username = username;</span>
+<span class="nc" id="L21">        this.total = total;</span>
+<span class="nc" id="L22">        this.discount = discount;</span>
+<span class="nc" id="L23">        this.cash = cash;</span>
+<span class="nc" id="L24">        this.change = change;</span>
+<span class="nc" id="L25">        this.time = time;</span>
+<span class="nc" id="L26">        this.items = items;</span>
+<span class="nc" id="L27">    }</span>
+
+    public String getSerial() {
+<span class="nc" id="L30">        return serial;</span>
+    }
+
+    public String getUsername() {
+<span class="nc" id="L34">        return username;</span>
+    }
+
+    public double getTotal() {
+<span class="nc" id="L38">        return total;</span>
+    }
+
+    public double getDiscount() {
+<span class="nc" id="L42">        return discount;</span>
+    }
+
+    public double getCash() {
+<span class="nc" id="L46">        return cash;</span>
+    }
+
+    public double getChange() {
+<span class="nc" id="L50">        return change;</span>
+    }
+
+    public LocalTime getTime() {
+<span class="nc" id="L54">        return time;</span>
+    }
+
+    public List&lt;CartItem&gt; getItems() {
+<span class="nc" id="L58">        return items;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

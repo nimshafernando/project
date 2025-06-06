@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BillHistoryReportUI.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.ui.views</a> &gt; <span class="el_source">BillHistoryReportUI.java</span></div><h1>BillHistoryReportUI.java</h1><pre class="source lang-java linenums">package syos.ui.views;
+
+import syos.dto.BillHistoryDTO;
+import syos.service.BillHistoryReportService;
+import syos.service.BillHistoryReportService.DateFilter;
+import syos.service.BillHistoryReportService.StoreFilter;
+import syos.service.BillHistoryReportService.PaymentMethodFilter;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class BillHistoryReportUI extends AbstractReportUI&lt;BillHistoryDTO&gt; {
+
+<span class="nc" id="L16">    private final BillHistoryReportService service = new BillHistoryReportService();</span>
+    private StoreFilter storeFilter;
+    private DateFilter dateFilter;
+    private PaymentMethodFilter paymentMethodFilter;
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    public BillHistoryReportUI(Scanner scanner) {
+<span class="nc" id="L24">        super(scanner);</span>
+<span class="nc" id="L25">    }</span>
+
+    @Override
+    protected boolean gatherReportCriteria() {
+        try {
+<span class="nc" id="L30">            storeFilter = promptStoreFilter();</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">            if (storeFilter == null)</span>
+<span class="nc" id="L32">                return false;</span>
+
+<span class="nc" id="L34">            dateFilter = promptDateFilter();</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">            if (dateFilter == null)</span>
+<span class="nc" id="L36">                return false;</span>
+
+<span class="nc bnc" id="L38" title="All 2 branches missed.">            if (dateFilter == DateFilter.CUSTOM_RANGE) {</span>
+<span class="nc" id="L39">                startDate = promptDate(&quot;Enter start date (yyyy-MM-dd): &quot;);</span>
+<span class="nc" id="L40">                endDate = promptDate(&quot;Enter end date (yyyy-MM-dd): &quot;);</span>
+            }
+
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            if (storeFilter == StoreFilter.ONLINE) {</span>
+<span class="nc" id="L44">                paymentMethodFilter = promptPaymentMethodFilter();</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">                if (paymentMethodFilter == null)</span>
+<span class="nc" id="L46">                    return false;</span>
+            } else {
+<span class="nc" id="L48">                paymentMethodFilter = PaymentMethodFilter.ALL_PAYMENT_METHODS;</span>
+            }
+
+<span class="nc" id="L51">            clearScreen();</span>
+<span class="nc" id="L52">            return true;</span>
+<span class="nc" id="L53">        } catch (Exception e) {</span>
+<span class="nc" id="L54">            System.out.println(&quot;Error gathering criteria: &quot; + e.getMessage());</span>
+<span class="nc" id="L55">            return false;</span>
+        }
+    }
+
+    @Override
+    protected String getReportTitle() {
+<span class="nc" id="L61">        return &quot;Bill History Report&quot;;</span>
+    }
+
+    @Override
+    protected List&lt;BillHistoryDTO&gt; fetchReportItems() {
+<span class="nc" id="L66">        return service.getBillHistory(storeFilter, dateFilter, startDate, endDate, paymentMethodFilter);</span>
+    }
+
+    @Override
+    protected void renderReport(List&lt;BillHistoryDTO&gt; bills) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (bills.isEmpty()) {</span>
+<span class="nc" id="L72">            showNoDataMessage();</span>
+<span class="nc" id="L73">            return;</span>
+        }
+<span class="nc" id="L75">        clearScreen();</span>
+<span class="nc" id="L76">        renderSummaryStatistics(bills);</span>
+<span class="nc" id="L77">        System.out.println();</span>
+<span class="nc" id="L78">        renderBillDetails(bills);</span>
+<span class="nc" id="L79">        waitForEnter();</span>
+<span class="nc" id="L80">    }</span>
+
+    @Override
+    protected void showNoDataMessage() {
+<span class="nc" id="L84">        System.out.println(&quot;=============================== TRANSACTION SUMMARY ===============================&quot;);</span>
+<span class="nc" id="L85">        System.out.println(&quot;Date Range: &quot; + getDateRangeDescription());</span>
+<span class="nc" id="L86">        System.out.println(&quot;Store Filter: &quot; + getStoreFilterDescription());</span>
+<span class="nc bnc" id="L87" title="All 4 branches missed.">        if (storeFilter == StoreFilter.ONLINE &amp;&amp; paymentMethodFilter != PaymentMethodFilter.ALL_PAYMENT_METHODS) {</span>
+<span class="nc" id="L88">            System.out.println(&quot;Payment Method Filter: &quot; + getPaymentMethodFilterDescription());</span>
+        }
+<span class="nc" id="L90">        System.out.println(&quot;\nNo transactions found for the selected criteria.&quot;);</span>
+<span class="nc" id="L91">        System.out.println(&quot;====================================================================================&quot;);</span>
+<span class="nc" id="L92">        waitForEnter();</span>
+<span class="nc" id="L93">    }</span>
+
+    // Prompt Methods (safe)
+    private StoreFilter promptStoreFilter() {
+<span class="nc" id="L97">        Map&lt;String, StoreFilter&gt; options = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L98">        options.put(&quot;1&quot;, StoreFilter.IN_STORE);</span>
+<span class="nc" id="L99">        options.put(&quot;2&quot;, StoreFilter.ONLINE);</span>
+<span class="nc" id="L100">        options.put(&quot;3&quot;, StoreFilter.ALL);</span>
+<span class="nc" id="L101">        options.put(&quot;0&quot;, null);</span>
+<span class="nc" id="L102">        return promptFilter(&quot;Store Type&quot;, options);</span>
+    }
+
+    private DateFilter promptDateFilter() {
+<span class="nc" id="L106">        Map&lt;String, DateFilter&gt; options = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L107">        options.put(&quot;1&quot;, DateFilter.TODAY);</span>
+<span class="nc" id="L108">        options.put(&quot;2&quot;, DateFilter.THIS_WEEK);</span>
+<span class="nc" id="L109">        options.put(&quot;3&quot;, DateFilter.THIS_MONTH);</span>
+<span class="nc" id="L110">        options.put(&quot;4&quot;, DateFilter.ALL_TIME);</span>
+<span class="nc" id="L111">        options.put(&quot;5&quot;, DateFilter.CUSTOM_RANGE);</span>
+<span class="nc" id="L112">        options.put(&quot;0&quot;, null);</span>
+<span class="nc" id="L113">        return promptFilter(&quot;Date Range&quot;, options);</span>
+    }
+
+    private PaymentMethodFilter promptPaymentMethodFilter() {
+<span class="nc" id="L117">        Map&lt;String, PaymentMethodFilter&gt; options = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L118">        options.put(&quot;1&quot;, PaymentMethodFilter.ALL_PAYMENT_METHODS);</span>
+<span class="nc" id="L119">        options.put(&quot;2&quot;, PaymentMethodFilter.CASH_ON_DELIVERY);</span>
+<span class="nc" id="L120">        options.put(&quot;3&quot;, PaymentMethodFilter.PAY_IN_STORE);</span>
+<span class="nc" id="L121">        options.put(&quot;0&quot;, null);</span>
+<span class="nc" id="L122">        return promptFilter(&quot;Payment Method Filter&quot;, options);</span>
+    }
+
+    private &lt;T&gt; T promptFilter(String title, Map&lt;String, T&gt; options) {
+        while (true) {
+<span class="nc" id="L127">            System.out.println(&quot;Select &quot; + title + &quot;:&quot;);</span>
+<span class="nc" id="L128">            options.forEach((key, val) -&gt; System.out</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                    .println(&quot;  &quot; + key + &quot;. &quot; + (val != null ? val.toString().replace(&quot;_&quot;, &quot; &quot;) : &quot;Back&quot;)));</span>
+<span class="nc" id="L130">            System.out.print(&quot;Choice: &quot;);</span>
+<span class="nc" id="L131">            String input = scanner.nextLine().trim();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if (options.containsKey(input))</span>
+<span class="nc" id="L133">                return options.get(input);</span>
+<span class="nc" id="L134">            System.out.println(&quot;[Invalid] Please enter a valid option.&quot;);</span>
+<span class="nc" id="L135">        }</span>
+    }
+
+    private LocalDate promptDate(String prompt) {
+        while (true) {
+<span class="nc" id="L140">            System.out.print(prompt);</span>
+            try {
+<span class="nc" id="L142">                return LocalDate.parse(scanner.nextLine().trim());</span>
+<span class="nc" id="L143">            } catch (DateTimeParseException e) {</span>
+<span class="nc" id="L144">                System.out.println(&quot;[Invalid] Format must be yyyy-MM-dd&quot;);</span>
+<span class="nc" id="L145">            }</span>
+        }
+    }
+
+    private String getDateRangeDescription() {
+<span class="nc bnc" id="L150" title="All 5 branches missed.">        return switch (dateFilter) {</span>
+<span class="nc" id="L151">            case TODAY -&gt; &quot;Today (&quot; + LocalDate.now() + &quot;)&quot;;</span>
+<span class="nc" id="L152">            case THIS_WEEK -&gt; &quot;This Week&quot;;</span>
+<span class="nc" id="L153">            case THIS_MONTH -&gt; &quot;This Month&quot;;</span>
+<span class="nc" id="L154">            case ALL_TIME -&gt; &quot;All Time&quot;;</span>
+<span class="nc" id="L155">            case CUSTOM_RANGE -&gt; startDate + &quot; to &quot; + endDate;</span>
+        };
+    }
+
+    private String getStoreFilterDescription() {
+<span class="nc bnc" id="L160" title="All 3 branches missed.">        return switch (storeFilter) {</span>
+<span class="nc" id="L161">            case IN_STORE -&gt; &quot;In-Store Only&quot;;</span>
+<span class="nc" id="L162">            case ONLINE -&gt; &quot;Online Only&quot;;</span>
+<span class="nc" id="L163">            case ALL -&gt; &quot;All Stores&quot;;</span>
+        };
+    }
+
+    private String getPaymentMethodFilterDescription() {
+<span class="nc bnc" id="L168" title="All 3 branches missed.">        return switch (paymentMethodFilter) {</span>
+<span class="nc" id="L169">            case ALL_PAYMENT_METHODS -&gt; &quot;All Payment Methods&quot;;</span>
+<span class="nc" id="L170">            case CASH_ON_DELIVERY -&gt; &quot;Cash on Delivery Only&quot;;</span>
+<span class="nc" id="L171">            case PAY_IN_STORE -&gt; &quot;Pay in Store Only&quot;;</span>
+        };
+    }
+
+    private void renderSummaryStatistics(List&lt;BillHistoryDTO&gt; bills) {
+<span class="nc" id="L176">        Map&lt;String, List&lt;BillHistoryDTO&gt;&gt; billsByStore = bills.stream()</span>
+<span class="nc" id="L177">                .collect(Collectors.groupingBy(BillHistoryDTO::getStoreType));</span>
+
+<span class="nc" id="L179">        double totalRevenue = bills.stream().mapToDouble(BillHistoryDTO::getTotalAmount).sum();</span>
+<span class="nc" id="L180">        int totalBills = bills.size();</span>
+
+<span class="nc" id="L182">        System.out.println(&quot;=============================== TRANSACTION SUMMARY ===============================&quot;);</span>
+<span class="nc" id="L183">        System.out.println(&quot;Date Range: &quot; + getDateRangeDescription());</span>
+<span class="nc" id="L184">        System.out.println(&quot;Store Filter: &quot; + getStoreFilterDescription());</span>
+<span class="nc bnc" id="L185" title="All 4 branches missed.">        if (storeFilter == StoreFilter.ONLINE &amp;&amp; paymentMethodFilter != PaymentMethodFilter.ALL_PAYMENT_METHODS) {</span>
+<span class="nc" id="L186">            System.out.println(&quot;Payment Method Filter: &quot; + getPaymentMethodFilterDescription());</span>
+        }
+
+<span class="nc" id="L189">        System.out.println(&quot;------------------------------------------------------------------------------------&quot;);</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (billsByStore.containsKey(&quot;IN_STORE&quot;))</span>
+<span class="nc" id="L191">            renderStoreSummary(&quot;In-Store&quot;, billsByStore.get(&quot;IN_STORE&quot;));</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (billsByStore.containsKey(&quot;ONLINE&quot;))</span>
+<span class="nc" id="L193">            renderOnlineSummary(billsByStore.get(&quot;ONLINE&quot;));</span>
+
+<span class="nc" id="L195">        System.out.println(&quot;------------------------------------------------------------------------------------&quot;);</span>
+<span class="nc" id="L196">        System.out.printf(&quot;TOTAL TRANSACTIONS: %-7d | TOTAL REVENUE: Rs. %10.2f%n&quot;, totalBills, totalRevenue);</span>
+
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        if (totalBills &gt; 0)</span>
+<span class="nc" id="L199">            System.out.printf(&quot;AVERAGE TRANSACTION VALUE: Rs. %.2f%n&quot;, totalRevenue / totalBills);</span>
+
+<span class="nc" id="L201">        System.out.println(&quot;====================================================================================&quot;);</span>
+<span class="nc" id="L202">    }</span>
+
+    private void renderStoreSummary(String label, List&lt;BillHistoryDTO&gt; bills) {
+<span class="nc" id="L205">        double revenue = bills.stream().mapToDouble(BillHistoryDTO::getTotalAmount).sum();</span>
+<span class="nc" id="L206">        System.out.printf(&quot;%s Transactions: %-5d | Revenue: Rs. %10.2f%n&quot;, label, bills.size(), revenue);</span>
+<span class="nc" id="L207">    }</span>
+
+    private void renderOnlineSummary(List&lt;BillHistoryDTO&gt; onlineBills) {
+<span class="nc" id="L210">        renderStoreSummary(&quot;Online&quot;, onlineBills);</span>
+
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (paymentMethodFilter == PaymentMethodFilter.ALL_PAYMENT_METHODS) {</span>
+<span class="nc" id="L213">            Map&lt;String, Long&gt; methodCounts = onlineBills.stream()</span>
+<span class="nc" id="L214">                    .collect(Collectors.groupingBy(BillHistoryDTO::getPaymentMethod, Collectors.counting()));</span>
+<span class="nc" id="L215">            System.out.print(&quot;  Payment Methods: &quot;);</span>
+<span class="nc" id="L216">            methodCounts.forEach((method, count) -&gt; System.out.printf(&quot;%s (%d) &quot;, method, count));</span>
+<span class="nc" id="L217">            System.out.println();</span>
+<span class="nc" id="L218">        } else {</span>
+<span class="nc" id="L219">            System.out.printf(&quot;  Filtered by: %s (%d transactions)%n&quot;,</span>
+<span class="nc" id="L220">                    getPaymentMethodFilterDescription(), onlineBills.size());</span>
+        }
+<span class="nc" id="L222">    }</span>
+
+    private void renderBillDetails(List&lt;BillHistoryDTO&gt; bills) {
+<span class="nc" id="L225">        System.out.println(</span>
+                &quot;==================================== TRANSACTION DETAILS ====================================&quot;);
+<span class="nc" id="L227">        System.out.printf(&quot;%-8s %-12s %-19s %-10s %-15s %-15s %-8s%n&quot;,</span>
+                &quot;Bill ID&quot;, &quot;Date&quot;, &quot;Timestamp&quot;, &quot;Amount&quot;, &quot;Payment&quot;, &quot;Customer/Employee&quot;, &quot;Store&quot;);
+<span class="nc" id="L229">        System.out.println(</span>
+                &quot;------------------------------------------------------------------------------------------------&quot;);
+
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        for (BillHistoryDTO bill : bills) {</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            String user = bill.getStoreType().equals(&quot;IN_STORE&quot;)</span>
+<span class="nc" id="L234">                    ? Optional.ofNullable(bill.getEmployeeName()).orElse(&quot;N/A&quot;)</span>
+<span class="nc" id="L235">                    : Optional.ofNullable(bill.getCustomerInfo()).orElse(&quot;N/A&quot;);</span>
+
+<span class="nc" id="L237">            System.out.printf(&quot;%-8d %-12s %-19s %-10.2f %-15s %-15s %-8s%n&quot;,</span>
+<span class="nc" id="L238">                    bill.getBillId(),</span>
+<span class="nc" id="L239">                    bill.getDateTime().toLocalDate(),</span>
+<span class="nc" id="L240">                    formatTimestamp(bill.getDateTime()),</span>
+<span class="nc" id="L241">                    bill.getTotalAmount(),</span>
+<span class="nc" id="L242">                    truncateText(bill.getPaymentMethod(), 15),</span>
+<span class="nc" id="L243">                    truncateText(user, 15),</span>
+<span class="nc" id="L244">                    bill.getStoreType());</span>
+<span class="nc" id="L245">        }</span>
+
+<span class="nc" id="L247">        System.out.println(</span>
+                &quot;------------------------------------------------------------------------------------------------&quot;);
+<span class="nc" id="L249">        System.out.printf(&quot;Total Bills Displayed: %d%n&quot;, bills.size());</span>
+<span class="nc" id="L250">        System.out.println(</span>
+                &quot;================================================================================================&quot;);
+<span class="nc" id="L252">    }</span>
+
+    private String formatTimestamp(java.time.LocalDateTime timestamp) {
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        return timestamp == null ? &quot;N/A&quot;</span>
+<span class="nc" id="L256">                : timestamp.format(java.time.format.DateTimeFormatter.ofPattern(&quot;HH:mm:ss&quot;));</span>
+    }
+
+    private String truncateText(String text, int maxLength) {
+<span class="nc bnc" id="L260" title="All 4 branches missed.">        return (text == null || text.length() &lt;= maxLength)</span>
+<span class="nc" id="L261">                ? Optional.ofNullable(text).orElse(&quot;N/A&quot;)</span>
+<span class="nc" id="L262">                : text.substring(0, maxLength - 3) + &quot;...&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

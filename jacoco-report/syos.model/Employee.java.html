@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Employee.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">SYOS Nimsha Project</a> &gt; <a href="index.source.html" class="el_package">syos.model</a> &gt; <span class="el_source">Employee.java</span></div><h1>Employee.java</h1><pre class="source lang-java linenums">package syos.model;
+
+/**
+ * Employee model with authentication capabilities
+ * Implements SOLID principles and follows your existing patterns
+ */
+public class Employee {
+    private String employeeId;
+    private String name;
+    private String pin;
+    private String role;
+    protected boolean isActive;
+
+    // Constructor
+<span class="fc" id="L15">    public Employee(String employeeId, String name, String pin, String role) {</span>
+<span class="fc" id="L16">        this.employeeId = employeeId;</span>
+<span class="fc" id="L17">        this.name = name;</span>
+<span class="fc" id="L18">        this.pin = pin;</span>
+<span class="fc" id="L19">        this.role = role;</span>
+<span class="fc" id="L20">        this.isActive = true;</span>
+<span class="fc" id="L21">    }</span>
+
+    // Getters
+    public String getEmployeeId() {
+<span class="fc" id="L25">        return employeeId;</span>
+    }
+
+    public String getName() {
+<span class="fc" id="L29">        return name;</span>
+    }
+
+    public String getPin() {
+<span class="fc" id="L33">        return pin;</span>
+    }
+
+    public String getRole() {
+<span class="fc" id="L37">        return role;</span>
+    }
+
+    public boolean isActive() {
+<span class="nc" id="L41">        return isActive;</span>
+    }
+
+    // Authentication method
+    public boolean authenticatePin(String inputPin) {
+<span class="nc bnc" id="L46" title="All 6 branches missed.">        return this.pin != null &amp;&amp; inputPin != null &amp;&amp; this.pin.equals(inputPin);</span>
+    }
+
+    // Display name for welcome message
+    public String getDisplayName() {
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        return name != null ? name : &quot;Employee &quot; + employeeId;</span>
+    }
+
+    // Null Object Pattern (following your OnlineUser pattern)
+    public static class NullEmployee extends Employee {
+<span class="nc" id="L56">        private static final NullEmployee INSTANCE = new NullEmployee();</span>
+
+        private NullEmployee() {
+<span class="nc" id="L59">            super(&quot;0000&quot;, &quot;Unknown&quot;, &quot;&quot;, &quot;&quot;);</span>
+<span class="nc" id="L60">            this.isActive = false;</span>
+<span class="nc" id="L61">        }</span>
+
+        public static NullEmployee getInstance() {
+<span class="nc" id="L64">            return INSTANCE;</span>
+        }
+
+        @Override
+        public boolean authenticatePin(String inputPin) {
+<span class="nc" id="L69">            return false;</span>
+        }
+
+        @Override
+        public boolean isActive() {
+<span class="nc" id="L74">            return false;</span>
+        }
+
+        @Override
+        public String getDisplayName() {
+<span class="nc" id="L79">            return &quot;Guest Employee&quot;;</span>
+        }
+    }
+
+    // Factory method for safe employee creation
+    public static Employee safeEmployee(Employee employee) {
+<span class="nc bnc" id="L85" title="All 4 branches missed.">        return (employee != null &amp;&amp; employee.isActive()) ? employee : NullEmployee.getInstance();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

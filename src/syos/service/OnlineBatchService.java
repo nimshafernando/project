@@ -12,10 +12,18 @@ public class OnlineBatchService {
     private final OnlineItemGateway onlineItemGateway;
     private final ReshelvedLogGateway reshelvedLogGateway;
 
-    public OnlineBatchService(BatchGateway batchGateway, OnlineItemGateway onlineItemGateway) {
+    // Improved constructor with all dependencies injected
+    public OnlineBatchService(BatchGateway batchGateway,
+            OnlineItemGateway onlineItemGateway,
+            ReshelvedLogGateway reshelvedLogGateway) {
         this.batchGateway = batchGateway;
         this.onlineItemGateway = onlineItemGateway;
-        this.reshelvedLogGateway = new ReshelvedLogGateway();
+        this.reshelvedLogGateway = reshelvedLogGateway;
+    }
+
+    // Convenience constructor for backward compatibility
+    public OnlineBatchService(BatchGateway batchGateway, OnlineItemGateway onlineItemGateway) {
+        this(batchGateway, onlineItemGateway, new ReshelvedLogGateway());
     }
 
     public boolean restockOnlineItem(String itemCode, int quantityToRestock) {

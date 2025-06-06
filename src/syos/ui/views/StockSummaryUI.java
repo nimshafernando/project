@@ -19,6 +19,12 @@ public class StockSummaryUI {
         this.reportService = new StockBatchReportService();
     }
 
+    // Constructor for dependency injection (testing)
+    public StockSummaryUI(Scanner scanner, StockBatchReportService reportService) {
+        this.scanner = scanner;
+        this.reportService = reportService;
+    }
+
     public void start() {
         ConsoleUtils.clearScreen();
         System.out.println("=====================================================");
@@ -28,18 +34,22 @@ public class StockSummaryUI {
         try {
             BatchSummary summary = reportService.getBatchSummary();
 
-            // Header
-            System.out.printf("%-25s : %s%n", "Total Batches", summary.getTotalBatches());
-            System.out.printf("%-25s : %s%n", "Active Batches", summary.getActiveBatches());
-            System.out.printf("%-25s : %s%n", "Expired Batches", summary.getExpired());
-            System.out.println("-----------------------------------------------------");
-            System.out.printf("%-25s : %,d units%n", "Total Stock", summary.getTotalStock());
-            System.out.printf("%-25s : %,d units%n", "Available Stock", summary.getAvailableStock());
-            System.out.printf("%-25s : %,d units%n", "Used Stock", summary.getUsedStock());
+            if (summary != null) {
+                // Header
+                System.out.printf("%-25s : %s%n", "Total Batches", summary.getTotalBatches());
+                System.out.printf("%-25s : %s%n", "Active Batches", summary.getActiveBatches());
+                System.out.printf("%-25s : %s%n", "Expired Batches", summary.getExpired());
+                System.out.println("-----------------------------------------------------");
+                System.out.printf("%-25s : %,d units%n", "Total Stock", summary.getTotalStock());
+                System.out.printf("%-25s : %,d units%n", "Available Stock", summary.getAvailableStock());
+                System.out.printf("%-25s : %,d units%n", "Used Stock", summary.getUsedStock());
 
-            if (summary.getTotalStock() > 0) {
-                double usageRate = (double) summary.getUsedStock() / summary.getTotalStock() * 100;
-                System.out.printf("%-25s : %.1f%%%n", "Usage Rate", usageRate);
+                if (summary.getTotalStock() > 0) {
+                    double usageRate = (double) summary.getUsedStock() / summary.getTotalStock() * 100;
+                    System.out.printf("%-25s : %.1f%%%n", "Usage Rate", usageRate);
+                }
+            } else {
+                System.out.println("Error: Unable to retrieve stock summary data.");
             }
 
         } catch (Exception e) {

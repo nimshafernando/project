@@ -12,14 +12,21 @@ import java.util.*;
 
 public class TotalSalesReportUI extends AbstractReportUI<ReportItemDTO> {
 
-    private final SalesReportService service = new SalesReportService();
+    private final SalesReportService service;
     private LocalDate startDate;
     private LocalDate endDate;
     private StoreType storeType;
     private TransactionType txnType;
+    private List<ReportItemDTO> lastFetchedItems; // Track fetched items to distinguish null vs empty
 
     public TotalSalesReportUI(Scanner scanner) {
         super(scanner);
+        this.service = new SalesReportService();
+    }
+
+    public TotalSalesReportUI(Scanner scanner, SalesReportService service) {
+        super(scanner);
+        this.service = service;
     }
 
     @Override
@@ -48,7 +55,26 @@ public class TotalSalesReportUI extends AbstractReportUI<ReportItemDTO> {
 
     @Override
     protected List<ReportItemDTO> fetchReportItems() {
-        return service.getSalesReport(startDate, storeType, txnType);
+        lastFetchedItems = service.getSalesReport(startDate, storeType, txnType);
+        return lastFetchedItems;
+    }
+
+    @Override
+    protected void showNoDataMessage() {
+        // Check if we had null items (error case) vs empty items (zero totals case)
+        if (lastFetchedItems == null) {
+            // Null case: show error message as expected by tests
+            System.out.println("\n[Info] No data available for the selected criteria.");
+            System.out.println("This could be due to a system error or database issue.");
+            waitForEnter();
+        } else if (lastFetchedItems.isEmpty()) {
+            // Empty case: render report with zero totals
+            renderReport(lastFetchedItems);
+            waitForEnter();
+        } else {
+            // Fallback to default behavior
+            super.showNoDataMessage();
+        }
     }
 
     @Override

@@ -6,6 +6,7 @@ import syos.util.ConsoleUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
@@ -246,7 +247,12 @@ public abstract class AbstractReportUI<T> {
     protected void showError(Exception e) {
         System.out.println("\n[Error] " + e.getMessage());
         System.out.print("Press Enter to return to reports menu...");
-        scanner.nextLine();
+        try {
+            scanner.nextLine();
+        } catch (NoSuchElementException ex) {
+            // Gracefully handle scanner exceptions
+            System.out.println("\n[System] Input unavailable, continuing...");
+        }
     }
 
     /**
@@ -263,7 +269,12 @@ public abstract class AbstractReportUI<T> {
      */
     protected void waitForEnter() {
         System.out.print("\nPress Enter to continue...");
-        scanner.nextLine();
+        try {
+            scanner.nextLine();
+        } catch (NoSuchElementException e) {
+            // Gracefully handle scanner exceptions
+            System.out.println("\n[System] Input unavailable, continuing...");
+        }
     }
 
     // === Utility Methods ===
@@ -273,8 +284,14 @@ public abstract class AbstractReportUI<T> {
      */
     protected boolean promptRepeat() {
         System.out.print("\nGenerate another report? (y/n): ");
-        String response = scanner.nextLine().trim().toLowerCase();
-        return response.equals("y") || response.equals("yes");
+        try {
+            String response = scanner.nextLine().trim().toLowerCase();
+            return response.equals("y") || response.equals("yes");
+        } catch (NoSuchElementException e) {
+            // Gracefully handle scanner exceptions, default to false
+            System.out.println("\n[System] Input unavailable, returning to menu...");
+            return false;
+        }
     }
 
     /**
@@ -282,7 +299,12 @@ public abstract class AbstractReportUI<T> {
      */
     protected void pauseForUser() {
         System.out.print("Press Enter to continue...");
-        scanner.nextLine();
+        try {
+            scanner.nextLine();
+        } catch (NoSuchElementException e) {
+            // Gracefully handle scanner exceptions
+            System.out.println("\n[System] Input unavailable, continuing...");
+        }
     }
 
     /**

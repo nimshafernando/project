@@ -2,6 +2,7 @@ package syos.ui.controllers;
 
 import syos.data.EmployeeGateway;
 import syos.data.ItemGateway;
+import syos.data.BillGateway;
 import syos.model.Employee;
 import syos.service.POS;
 import syos.util.ConsoleUtils;
@@ -129,7 +130,8 @@ public class EmployeeMainMenuController {
                 case "1" -> {
                     ItemGateway itemGateway = new ItemGateway();
                     POS pos = new POS();
-                    CheckoutAndBillingController.launch(scanner, itemGateway, pos, employee);
+                    BillGateway billGateway = new BillGateway();
+                    CheckoutAndBillingController.launch(scanner, itemGateway, pos, employee, billGateway);
                 }
                 case "2" -> InventoryAndStockController.launch(scanner, employee);
                 case "3" -> ReportingMainMenuController.launch(scanner);

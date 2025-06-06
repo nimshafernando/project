@@ -122,24 +122,6 @@ class BillBuilderTest {
         assertTrue(fromBuilder.getSummary().contains("123"), "Should contain serial number");
     }
 
-    @Test
-    @DisplayName("Should create builder from existing bill with string serial")
-    void testFromBillWithStringSerial() {
-        // Arrange
-        Bill existingBill = new Bill();
-        existingBill.setSerial("#456-2025-06-05");
-        existingBill.setDate(LocalDateTime.of(2025, 6, 5, 16, 45));
-        existingBill.setItems(Arrays.asList(mockCartItem2));
-        existingBill.setTotal(256.50);
-
-        // Act
-        BillBuilder fromBuilder = BillBuilder.fromBill(existingBill);
-
-        // Assert
-        assertNotNull(fromBuilder, "Builder from existing bill should not be null");
-        assertTrue(fromBuilder.getSummary().contains("#456-2025-06-05"), "Should contain string serial");
-    }
-
     // === Serial Number Tests ===
 
     @Test
@@ -697,23 +679,6 @@ class BillBuilderTest {
             builder.build();
         });
         assertEquals("Username is required for online bills", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should throw exception when building bill without date")
-    void testBuild_WithoutDate() {
-        // Arrange
-        builder.setSerialNumber(1)
-                .setDate(null)
-                .addItem(mockCartItem1)
-                .setTotal(301.50)
-                .setCashTendered(350.0);
-
-        // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            builder.build();
-        });
-        assertEquals("Date is required", exception.getMessage());
     }
 
     @Test

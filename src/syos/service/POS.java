@@ -208,8 +208,20 @@ public class POS {
      */
     private void removeFromCartInternal(String itemCode, int quantity) {
         List<CartItem> items = cart.getItems();
-        items.removeIf(cartItem -> cartItem.getItem().getCode().equals(itemCode) &&
-                cartItem.getQuantity() <= quantity);
+        for (int i = 0; i < items.size(); i++) {
+            CartItem cartItem = items.get(i);
+            if (cartItem.getItem().getCode().equals(itemCode)) {
+                if (cartItem.getQuantity() <= quantity) {
+                    // Remove entire item if quantity to remove >= cart item quantity
+                    items.remove(i);
+                } else {
+                    // Reduce quantity if quantity to remove < cart item quantity
+                    CartItem updatedItem = new CartItem(cartItem.getItem(), cartItem.getQuantity() - quantity);
+                    items.set(i, updatedItem);
+                }
+                break; // Only remove from first matching item
+            }
+        }
     }
 
     /**

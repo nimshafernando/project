@@ -30,35 +30,51 @@ class ItemValidatorTest {
     }
 
     @Test
-    @DisplayName("Should reject item with invalid code")
+    @DisplayName("Should reject item with empty or whitespace code")
     void testInvalidCode() {
-        ItemDTO item = new ItemDTO("", "Item", 100.0, 50);
-        assertFalse(validator.isValid(item));
+        assertFalse(validator.isValid(new ItemDTO("", "Item", 100.0, 50)));
+        assertFalse(validator.isValid(new ItemDTO("   ", "Item", 100.0, 50)));
     }
 
     @Test
-    @DisplayName("Should reject item with invalid name")
+    @DisplayName("Should reject item with overly long code")
+    void testOverlyLongCode() {
+        String longCode = "X".repeat(21);
+        assertFalse(validator.isValid(new ItemDTO(longCode, "Item", 100.0, 50)));
+    }
+
+    @Test
+    @DisplayName("Should reject item with null or empty name")
     void testInvalidName() {
-        ItemDTO item = new ItemDTO("ITEM001", null, 100.0, 50);
-        assertFalse(validator.isValid(item));
+        assertFalse(validator.isValid(new ItemDTO("ITEM001", null, 100.0, 50)));
+        assertFalse(validator.isValid(new ItemDTO("ITEM001", "   ", 100.0, 50)));
+    }
+
+    @Test
+    @DisplayName("Should reject item with overly long name")
+    void testOverlyLongName() {
+        String longName = "Y".repeat(101);
+        assertFalse(validator.isValid(new ItemDTO("ITEM001", longName, 100.0, 50)));
     }
 
     @Test
     @DisplayName("Should reject item with invalid price")
     void testInvalidPrice() {
-        ItemDTO item1 = new ItemDTO("ITEM001", "Item", 0.0, 50);
-        ItemDTO item2 = new ItemDTO("ITEM001", "Item", -50.0, 50);
-        ItemDTO item3 = new ItemDTO("ITEM001", "Item", 1000000.0, 50);
-
-        assertFalse(validator.isValid(item1));
-        assertFalse(validator.isValid(item2));
-        assertFalse(validator.isValid(item3));
+        assertFalse(validator.isValid(new ItemDTO("ITEM001", "Item", 0.0, 50)));
+        assertFalse(validator.isValid(new ItemDTO("ITEM001", "Item", -50.0, 50)));
+        assertFalse(validator.isValid(new ItemDTO("ITEM001", "Item", 1_000_000.0, 50)));
     }
 
     @Test
-    @DisplayName("Should reject item with negative quantity")
+    @DisplayName("Should reject item with invalid quantity")
     void testInvalidQuantity() {
-        ItemDTO item = new ItemDTO("ITEM001", "Item", 100.0, -1);
-        assertFalse(validator.isValid(item));
+        assertFalse(validator.isValid(new ItemDTO("ITEM001", "Item", 100.0, -1)));
+    }
+
+    @Test
+    @DisplayName("Should accept boundary values for price and quantity")
+    void testBoundaryValidPriceAndQuantity() {
+        assertTrue(validator.isValid(new ItemDTO("ITEM001", "Item", 0.01, 0)));
+        assertTrue(validator.isValid(new ItemDTO("ITEM001", "Item", 999999.99, 9999)));
     }
 }

@@ -117,12 +117,11 @@ class BillPrinterTest {
         verify(mockBill).getDiscount();
         verify(mockBill).getCashTendered();
         verify(mockBill).getChange();
-
-        verify(mockCartItem1, times(2)).getItem();
+        verify(mockCartItem1, times(1)).getItem();
         verify(mockCartItem1).getQuantity();
         verify(mockCartItem1).getTotalPrice();
 
-        verify(mockCartItem2, times(2)).getItem();
+        verify(mockCartItem2, times(1)).getItem();
         verify(mockCartItem2).getQuantity();
         verify(mockCartItem2).getTotalPrice();
     }

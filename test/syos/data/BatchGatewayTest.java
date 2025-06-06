@@ -93,10 +93,16 @@ public class BatchGatewayTest {
         when(resultSet.getDate("purchase_date")).thenReturn(Date.valueOf(LocalDate.of(2025, 1, 1)));
         when(resultSet.getDate("expiry_date")).thenReturn(Date.valueOf(LocalDate.of(2025, 12, 31)));
         when(resultSet.getInt("used_quantity")).thenReturn(20);
-
         BatchDTO result = batchGateway.findById(1);
         assertNotNull(result);
-        assertEquals(sampleBatch, result);
+        assertEquals(1, result.getId());
+        assertEquals("ITEM001", result.getItemCode());
+        assertEquals("Paracetamol", result.getName());
+        assertEquals(10.50, result.getSellingPrice());
+        assertEquals(100, result.getQuantity());
+        assertEquals(LocalDate.of(2025, 1, 1), result.getPurchaseDate());
+        assertEquals(LocalDate.of(2025, 12, 31), result.getExpiryDate());
+        assertEquals(20, result.getUsedQuantity());
     }
 
     @Test
@@ -124,10 +130,17 @@ public class BatchGatewayTest {
         when(resultSet.getDate("purchase_date")).thenReturn(Date.valueOf(LocalDate.of(2025, 1, 1)));
         when(resultSet.getDate("expiry_date")).thenReturn(Date.valueOf(LocalDate.of(2025, 12, 31)));
         when(resultSet.getInt("used_quantity")).thenReturn(20);
-
         List<BatchDTO> result = batchGateway.findAll();
         assertEquals(1, result.size());
-        assertEquals(sampleBatch, result.get(0));
+        BatchDTO batch = result.get(0);
+        assertEquals(1, batch.getId());
+        assertEquals("ITEM001", batch.getItemCode());
+        assertEquals("Paracetamol", batch.getName());
+        assertEquals(10.50, batch.getSellingPrice());
+        assertEquals(100, batch.getQuantity());
+        assertEquals(LocalDate.of(2025, 1, 1), batch.getPurchaseDate());
+        assertEquals(LocalDate.of(2025, 12, 31), batch.getExpiryDate());
+        assertEquals(20, batch.getUsedQuantity());
     }
 
     @Test
@@ -259,10 +272,10 @@ public class BatchGatewayTest {
         when(preparedStatement.executeUpdate()).thenReturn(1);
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt("quantity")).thenReturn(80);
-
         boolean result = batchGateway.reduceBatchQuantity("ITEM001", LocalDate.of(2025, 1, 1), 20);
         assertTrue(result);
-        verify(preparedStatement, times(2)).setInt(1, 20);
+        verify(preparedStatement).setInt(1, 20);
+        verify(preparedStatement).setInt(2, 20);
         verify(preparedStatement).setString(3, "ITEM001");
         verify(preparedStatement).setDate(4, Date.valueOf(LocalDate.of(2025, 1, 1)));
     }

@@ -110,8 +110,37 @@ class SalesReportServiceTest {
     void getSalesReport_WithCombinedStoreTypeAndAllTransactionType_ShouldReturnBothStoreItems() {
         try (MockedStatic<DatabaseConnection> mockedStatic = mockStatic(DatabaseConnection.class)) {
             // Arrange
-            setupDatabaseMocks(mockedStatic);
-            setupCombinedResultSet();
+            DatabaseConnection mockDbConnection = setupMockDatabaseConnection();
+            mockedStatic.when(DatabaseConnection::getInstance).thenReturn(mockDbConnection);
+
+            // Create separate result sets for in-store and online queries
+            ResultSet inStoreResultSet = mock(ResultSet.class);
+            ResultSet onlineResultSet = mock(ResultSet.class);
+
+            // Setup in-store result set
+            when(inStoreResultSet.next()).thenReturn(true, false);
+            when(inStoreResultSet.getString("item_code")).thenReturn(ITEM_CODE_LAPTOP);
+            when(inStoreResultSet.getString("item_name")).thenReturn(ITEM_NAME_LAPTOP);
+            when(inStoreResultSet.getInt("total_qty")).thenReturn(QUANTITY_SOLD_10);
+            when(inStoreResultSet.getDouble("total_revenue")).thenReturn(REVENUE_1000);
+
+            // Setup online result set
+            when(onlineResultSet.next()).thenReturn(true, false);
+            when(onlineResultSet.getString("item_code")).thenReturn(ITEM_CODE_PHONE);
+            when(onlineResultSet.getString("name")).thenReturn(ITEM_NAME_PHONE);
+            when(onlineResultSet.getInt("total_qty")).thenReturn(QUANTITY_SOLD_5);
+            when(onlineResultSet.getDouble("total_revenue")).thenReturn(REVENUE_500);
+
+            // Setup prepared statements to return appropriate result sets
+            PreparedStatement inStoreStmt = mock(PreparedStatement.class);
+            PreparedStatement onlineStmt = mock(PreparedStatement.class);
+
+            when(inStoreStmt.executeQuery()).thenReturn(inStoreResultSet);
+            when(onlineStmt.executeQuery()).thenReturn(onlineResultSet);
+
+            // Configure connection to return appropriate prepared statements based on SQL
+            when(connection.prepareStatement(contains("bill_items"))).thenReturn(inStoreStmt);
+            when(connection.prepareStatement(contains("online_bill_items"))).thenReturn(onlineStmt);
 
             // Act
             List<ReportItemDTO> result = service.getSalesReport(TEST_DATE,

@@ -140,10 +140,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             verify(mockItemGateway, atLeastOnce()).getAllItems();
@@ -174,7 +172,7 @@ class CheckoutAndBillingControllerTest {
             when(mockEmployeeSession.isLoggedIn()).thenReturn(false);
 
             // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             verify(mockItemGateway).getAllItems();
@@ -203,7 +201,7 @@ class CheckoutAndBillingControllerTest {
             when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
 
             // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -229,10 +227,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -258,10 +254,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -295,10 +289,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -333,10 +325,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -371,10 +361,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -404,10 +392,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -438,10 +424,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -462,10 +446,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             verify(mockItemGateway).getAllItems();
@@ -484,10 +466,8 @@ class CheckoutAndBillingControllerTest {
                 MockedStatic<EmployeeSession> mockedEmployeeSession = mockStatic(EmployeeSession.class)) {
 
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
-            when(mockEmployeeSession.isLoggedIn()).thenReturn(false);
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.isLoggedIn()).thenReturn(false); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -504,13 +484,12 @@ class CheckoutAndBillingControllerTest {
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("Jane Doe");
             when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP002");
-
             Scanner scanner = createScannerWithInput("\n");
             when(mockItemGateway.getAllItems()).thenReturn(testItems);
 
             try (MockedStatic<ConsoleUtils> mockedConsoleUtils = mockStatic(ConsoleUtils.class)) {
                 // Act
-                CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+                CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
                 // Assert
                 String output = getOutput();
@@ -550,10 +529,8 @@ class CheckoutAndBillingControllerTest {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(true);
             when(mockEmployeeSession.getCurrentEmployeeName()).thenReturn("John Smith");
-            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001");
-
-            // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            when(mockEmployeeSession.getEmployeeId()).thenReturn("EMP001"); // Act
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -582,7 +559,7 @@ class CheckoutAndBillingControllerTest {
             when(mockEmployeeSession.isLoggedIn()).thenReturn(false);
 
             // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();
@@ -599,13 +576,12 @@ class CheckoutAndBillingControllerTest {
         try (MockedStatic<EmployeeSession> mockedEmployeeSession = mockStatic(EmployeeSession.class)) {
             mockedEmployeeSession.when(EmployeeSession::getInstance).thenReturn(mockEmployeeSession);
             when(mockEmployeeSession.isLoggedIn()).thenReturn(false);
-
             Scanner scanner = createScannerWithInput("\n");
             when(mockItemGateway.getAllItems()).thenReturn(testItems);
 
             try (MockedStatic<ConsoleUtils> mockedConsoleUtils = mockStatic(ConsoleUtils.class)) {
                 // Act
-                CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+                CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
                 // Assert
                 String output = getOutput();
@@ -633,7 +609,7 @@ class CheckoutAndBillingControllerTest {
             when(mockEmployeeSession.isLoggedIn()).thenReturn(false);
 
             // Act
-            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee);
+            CheckoutAndBillingController.launch(scanner, mockItemGateway, mockPOS, testEmployee, mockBillGateway);
 
             // Assert
             String output = getOutput();

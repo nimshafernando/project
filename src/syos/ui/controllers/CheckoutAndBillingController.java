@@ -16,7 +16,8 @@ import java.util.Scanner;
 
 public class CheckoutAndBillingController {
 
-    public static void launch(Scanner scanner, ItemGateway gateway, POS pos, Employee employee) {
+    public static void launch(Scanner scanner, ItemGateway gateway, POS pos, Employee employee,
+            BillGateway billGateway) {
         while (true) {
             ConsoleUtils.clearScreen();
             showEmployeeHeader();
@@ -135,7 +136,6 @@ public class CheckoutAndBillingController {
             try {
                 Bill bill = pos.checkout(cash, discount);
 
-                BillGateway billGateway = new BillGateway();
                 billGateway.saveBill(bill);
                 BillStorage.save(bill);
 
@@ -153,6 +153,7 @@ public class CheckoutAndBillingController {
                 ConsoleUtils.pause(scanner);
             }
         }
+
     }
 
     private static String truncateString(String str, int maxLength) {

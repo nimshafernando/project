@@ -1,6 +1,7 @@
 package syos.service;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import static org.junit.jupiter.api.Assertions.*;
@@ -8,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import syos.dto.ItemDTO;
 import syos.model.Bill;
 import syos.model.CartItem;
+import syos.util.EmployeeSession;
 
 import java.util.List;
 
@@ -23,6 +25,15 @@ public class POSTest {
         pos = new POS();
         testItem1 = new ItemDTO("A101", "Milk", 100.0, 10);
         testItem2 = new ItemDTO("A102", "Bread", 50.0, 20);
+
+        // Set up employee session for checkout operations
+        EmployeeSession.getInstance().loginEmployee("John Doe", "EMP001", "Cashier");
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Clean up employee session after each test
+        EmployeeSession.getInstance().logout();
     }
 
     @Test

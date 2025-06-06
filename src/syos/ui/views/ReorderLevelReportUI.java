@@ -13,7 +13,6 @@ import java.util.Scanner;
  */
 public class ReorderLevelReportUI extends AbstractReportUI<ReorderItemDTO> {
 
-    private final ReorderLevelReportService service = new ReorderLevelReportService();
     private StoreFilter storeFilter;
     private int thresholdValue;
 
@@ -116,6 +115,7 @@ public class ReorderLevelReportUI extends AbstractReportUI<ReorderItemDTO> {
 
     @Override
     protected List<ReorderItemDTO> fetchReportItems() {
+        ReorderLevelReportService service = new ReorderLevelReportService();
         return switch (storeFilter) {
             case IN_STORE_ONLY -> service.getInStoreReorderItems(thresholdValue);
             case ONLINE_ONLY -> service.getOnlineReorderItems(thresholdValue);

@@ -34,6 +34,12 @@ class ReorderLevelReportServiceTest {
     @Mock
     private ResultSet resultSet;
 
+    @Mock
+    private ResultSet inStoreResultSet;
+
+    @Mock
+    private ResultSet onlineResultSet;
+
     private ReorderLevelReportService service;
 
     // Test data constants
@@ -62,6 +68,11 @@ class ReorderLevelReportServiceTest {
             setupInStoreResultSet();
             setupOnlineResultSet();
 
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
+
             List<ReorderItemDTO> result = service.getItemsBelowReorderLevel();
 
             assertNotNull(result);
@@ -81,6 +92,11 @@ class ReorderLevelReportServiceTest {
             setupInStoreResultSet();
             setupOnlineResultSet();
 
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
+
             List<ReorderItemDTO> result = service.getItemsBelowReorderLevel(CUSTOM_THRESHOLD);
 
             assertNotNull(result);
@@ -96,6 +112,7 @@ class ReorderLevelReportServiceTest {
     void getInStoreReorderItems_WithDefaultThreshold_ShouldReturnInStoreItems() {
         try (MockedStatic<DatabaseConnection> mockedStatic = mockStatic(DatabaseConnection.class)) {
             setupDatabaseMocks(mockedStatic);
+            when(preparedStatement.executeQuery()).thenReturn(inStoreResultSet);
             setupInStoreResultSet();
 
             List<ReorderItemDTO> result = service.getInStoreReorderItems();
@@ -123,6 +140,7 @@ class ReorderLevelReportServiceTest {
         try (MockedStatic<DatabaseConnection> mockedStatic = mockStatic(DatabaseConnection.class)) {
             // Arrange
             setupDatabaseMocks(mockedStatic);
+            when(preparedStatement.executeQuery()).thenReturn(inStoreResultSet);
             setupInStoreResultSet();
 
             // Act
@@ -143,6 +161,7 @@ class ReorderLevelReportServiceTest {
         try (MockedStatic<DatabaseConnection> mockedStatic = mockStatic(DatabaseConnection.class)) {
             // Arrange
             setupDatabaseMocks(mockedStatic);
+            when(preparedStatement.executeQuery()).thenReturn(onlineResultSet);
             setupOnlineResultSet();
 
             // Act
@@ -170,6 +189,7 @@ class ReorderLevelReportServiceTest {
         try (MockedStatic<DatabaseConnection> mockedStatic = mockStatic(DatabaseConnection.class)) {
             // Arrange
             setupDatabaseMocks(mockedStatic);
+            when(preparedStatement.executeQuery()).thenReturn(onlineResultSet);
             setupOnlineResultSet();
 
             // Act
@@ -227,7 +247,11 @@ class ReorderLevelReportServiceTest {
         try (MockedStatic<DatabaseConnection> mockedStatic = mockStatic(DatabaseConnection.class)) {
             // Arrange
             setupDatabaseMocks(mockedStatic);
-            when(resultSet.next()).thenReturn(false); // No results
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
+            when(inStoreResultSet.next()).thenReturn(false); // No results
+            when(onlineResultSet.next()).thenReturn(false); // No results
 
             // Act
             List<ReorderItemDTO> result = service.getItemsBelowReorderLevel(CUSTOM_THRESHOLD);
@@ -247,6 +271,12 @@ class ReorderLevelReportServiceTest {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupInStoreResultSet();
+            setupOnlineResultSet();
+
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
 
             // Act
             List<ReorderItemDTO> result = service.getItemsBelowReorderLevel(0);
@@ -266,6 +296,12 @@ class ReorderLevelReportServiceTest {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupInStoreResultSet();
+            setupOnlineResultSet();
+
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
 
             // Act
             List<ReorderItemDTO> result = service.getItemsBelowReorderLevel(-10);
@@ -276,15 +312,20 @@ class ReorderLevelReportServiceTest {
         } catch (SQLException e) {
             fail("SQLException should not occur in this test");
         }
-    } // IReportService interface tests
+    }// IReportService interface tests @Test
 
-    @Test
     @DisplayName("Should return default report when generateReport is called")
     void generateReport_ShouldReturnDefaultReport() {
         try (MockedStatic<DatabaseConnection> mockedStatic = mockStatic(DatabaseConnection.class)) {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupInStoreResultSet();
+            setupOnlineResultSet();
+
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
 
             // Act
             List<ReorderItemDTO> result = service.generateReport();
@@ -304,6 +345,7 @@ class ReorderLevelReportServiceTest {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupInStoreResultSet();
+            when(preparedStatement.executeQuery()).thenReturn(inStoreResultSet);
 
             // Act
             List<ReorderItemDTO> result = service.generateReport(ReorderLevelReportService.StoreFilter.IN_STORE_ONLY);
@@ -324,6 +366,7 @@ class ReorderLevelReportServiceTest {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupOnlineResultSet();
+            when(preparedStatement.executeQuery()).thenReturn(onlineResultSet);
 
             // Act
             List<ReorderItemDTO> result = service.generateReport(ReorderLevelReportService.StoreFilter.ONLINE_ONLY);
@@ -343,6 +386,12 @@ class ReorderLevelReportServiceTest {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupInStoreResultSet();
+            setupOnlineResultSet();
+
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
 
             // Act
             List<ReorderItemDTO> result = service.generateReport(ReorderLevelReportService.StoreFilter.BOTH_STORES);
@@ -362,6 +411,12 @@ class ReorderLevelReportServiceTest {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupInStoreResultSet();
+            setupOnlineResultSet();
+
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
 
             // Act
             List<ReorderItemDTO> result = service.generateReport("invalid_filter");
@@ -418,6 +473,12 @@ class ReorderLevelReportServiceTest {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupInStoreResultSet();
+            setupOnlineResultSet();
+
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
 
             // Act
             boolean isAvailable = service.isDataAvailable();
@@ -435,7 +496,11 @@ class ReorderLevelReportServiceTest {
         try (MockedStatic<DatabaseConnection> mockedStatic = mockStatic(DatabaseConnection.class)) {
             // Arrange
             setupDatabaseMocks(mockedStatic);
-            when(resultSet.next()).thenReturn(false); // No data
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
+            when(inStoreResultSet.next()).thenReturn(false); // No data
+            when(onlineResultSet.next()).thenReturn(false); // No data
 
             // Act
             boolean isAvailable = service.isDataAvailable();
@@ -454,13 +519,19 @@ class ReorderLevelReportServiceTest {
             // Arrange
             setupDatabaseMocks(mockedStatic);
             setupInStoreResultSet();
+            setupOnlineResultSet();
+
+            // Mock executeQuery to return the appropriate result sets
+            when(preparedStatement.executeQuery())
+                    .thenReturn(inStoreResultSet)
+                    .thenReturn(onlineResultSet);
 
             // Act
             List<List<String>> reportData = service.getReportData();
 
             // Assert
             assertNotNull(reportData);
-            assertEquals(1, reportData.size());
+            assertEquals(2, reportData.size());
 
             List<String> firstRow = reportData.get(0);
             assertEquals(6, firstRow.size());
@@ -555,7 +626,6 @@ class ReorderLevelReportServiceTest {
     }
 
     // Helper methods
-
     private void setupDatabaseMocks(MockedStatic<DatabaseConnection> mockedStatic) throws SQLException {
         mockedStatic.when(DatabaseConnection::getInstance).thenReturn(databaseConnection);
         try {
@@ -563,23 +633,23 @@ class ReorderLevelReportServiceTest {
         } catch (Exception e) {
             fail("Mock setup failed: " + e.getMessage());
         }
-        when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(connection.prepareStatement(anyString()))
+                .thenReturn(preparedStatement);
     }
 
     private void setupInStoreResultSet() throws SQLException {
-        when(resultSet.next()).thenReturn(true, false); // One record, then end
-        when(resultSet.getString("code")).thenReturn(ITEM_CODE_LAPTOP);
-        when(resultSet.getString("name")).thenReturn(ITEM_NAME_LAPTOP);
-        when(resultSet.getInt("quantity")).thenReturn(QUANTITY_LOW);
-        when(resultSet.getDouble("price")).thenReturn(PRICE_LAPTOP);
+        when(inStoreResultSet.next()).thenReturn(true, false); // One record, then end
+        when(inStoreResultSet.getString("code")).thenReturn(ITEM_CODE_LAPTOP);
+        when(inStoreResultSet.getString("name")).thenReturn(ITEM_NAME_LAPTOP);
+        when(inStoreResultSet.getInt("quantity")).thenReturn(QUANTITY_LOW);
+        when(inStoreResultSet.getDouble("price")).thenReturn(PRICE_LAPTOP);
     }
 
     private void setupOnlineResultSet() throws SQLException {
-        when(resultSet.next()).thenReturn(true, false); // One record, then end
-        when(resultSet.getString("item_code")).thenReturn(ITEM_CODE_PHONE);
-        when(resultSet.getString("name")).thenReturn(ITEM_NAME_PHONE);
-        when(resultSet.getInt("quantity")).thenReturn(QUANTITY_VERY_LOW);
-        when(resultSet.getDouble("price")).thenReturn(PRICE_PHONE);
+        when(onlineResultSet.next()).thenReturn(true, false); // One record, then end
+        when(onlineResultSet.getString("item_code")).thenReturn(ITEM_CODE_PHONE);
+        when(onlineResultSet.getString("name")).thenReturn(ITEM_NAME_PHONE);
+        when(onlineResultSet.getInt("quantity")).thenReturn(QUANTITY_VERY_LOW);
+        when(onlineResultSet.getDouble("price")).thenReturn(PRICE_PHONE);
     }
 }

@@ -44,7 +44,7 @@ public class ViewExpiredBatchesUI {
             System.out.printf("%-5d %-12s %-25s %-10d %-12s %-12s%n",
                     index++,
                     batch.getItemCode(),
-                    truncate(batch.getItemName(), 25),
+                    truncate(batch.getName(), 25),
                     batch.getQuantity(),
                     batch.getExpiryDate(),
                     batch.getPurchaseDate());

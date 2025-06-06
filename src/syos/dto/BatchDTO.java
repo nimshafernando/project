@@ -116,4 +116,43 @@ public class BatchDTO {
     public String getItemName() {
         return name;
     } // For compatibility
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+
+        BatchDTO batchDTO = (BatchDTO) obj;
+
+        return id == batchDTO.id &&
+                Double.compare(batchDTO.sellingPrice, sellingPrice) == 0 &&
+                quantity == batchDTO.quantity &&
+                usedQuantity == batchDTO.usedQuantity &&
+                java.util.Objects.equals(itemCode, batchDTO.itemCode) &&
+                java.util.Objects.equals(name, batchDTO.name) &&
+                java.util.Objects.equals(purchaseDate, batchDTO.purchaseDate) &&
+                java.util.Objects.equals(expiryDate, batchDTO.expiryDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(id, itemCode, name, sellingPrice, quantity, purchaseDate, expiryDate,
+                usedQuantity);
+    }
+
+    @Override
+    public String toString() {
+        return "BatchDTO{" +
+                "id=" + id +
+                ", itemCode='" + itemCode + '\'' +
+                ", name='" + name + '\'' +
+                ", sellingPrice=" + sellingPrice +
+                ", quantity=" + quantity +
+                ", purchaseDate=" + purchaseDate +
+                ", expiryDate=" + expiryDate +
+                ", usedQuantity=" + usedQuantity +
+                '}';
+    }
 }

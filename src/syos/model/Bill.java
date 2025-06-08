@@ -24,7 +24,7 @@ public class Bill {
     private String source;
     private String username; // for online bills
     private String paymentMethod;
-    private String employeeName; // Add this field
+    private String employeeName;
 
     // State pattern implementation
     private BillState currentState;

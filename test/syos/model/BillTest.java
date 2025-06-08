@@ -10,7 +10,6 @@ import syos.dto.ItemDTO;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,7 +31,6 @@ class BillTest {
     private Bill onlineBill;
     private Bill emptyBill;
     private List<CartItem> testItems;
-    private List<CartItem> mockItems;
     private LocalDateTime testDate;
 
     @BeforeEach
@@ -50,12 +48,11 @@ class BillTest {
                 new CartItem(item2, 3));
 
         // Setup mock items
+        // Setup mock items
         when(mockCartItem1.getTotalPrice()).thenReturn(150.0);
         when(mockCartItem2.getTotalPrice()).thenReturn(75.0);
-        mockItems = Arrays.asList(mockCartItem1, mockCartItem2);
 
         // Create different bill types
-        bill = new Bill(1, testDate, testItems, 350.0, 25.0, 400.0, 50.0);
         onlineBill = new Bill("ONL-001", testDate, testItems, 350.0, 0.0, 400.0, 50.0);
         emptyBill = new Bill();
     } // === Constructor Tests ===

@@ -10,11 +10,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
-import java.util.logging.Level;
 
 public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
-    private static final Logger LOGGER = Logger.getLogger(ReshelvedLogGateway.class.getName());
     private final DatabaseConnectionProvider connectionProvider;
 
     public enum StoreType {
@@ -29,14 +26,12 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
     // Default constructor for backward compatibility
     public ReshelvedLogGateway() {
         this.connectionProvider = DatabaseConnection.getInstance();
-    } // Implementation of DataAccessInterface methods
+    }
 
     @Override
     public boolean insert(ReshelvedLogDTO entity) {
-        if (entity == null) {
-            LOGGER.warning("Cannot insert null ReshelvedLogDTO");
+        if (entity == null)
             return false;
-        }
 
         String sql = "INSERT INTO reshelved_log (item_code, quantity, store_type) VALUES (?, ?, ?)";
         try (Connection conn = connectionProvider.getPoolConnection();
@@ -51,23 +46,20 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         entity.setId(generatedKeys.getInt(1));
-                        LOGGER.info("Reshelved log inserted successfully with ID: " + entity.getId());
                         return true;
                     }
                 }
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error inserting reshelved log", e);
+            // Silent fail
         }
         return false;
     }
 
     @Override
     public ReshelvedLogDTO findById(Integer id) {
-        if (id == null) {
-            LOGGER.warning("Cannot find ReshelvedLogDTO with null ID");
+        if (id == null)
             return null;
-        }
 
         String sql = "SELECT * FROM reshelved_log WHERE id = ?";
         try (Connection conn = connectionProvider.getPoolConnection();
@@ -85,7 +77,7 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
                 }
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error finding reshelved log by ID: " + id, e);
+            // Silent fail
         }
         return null;
     }
@@ -97,10 +89,8 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
 
     @Override
     public boolean update(ReshelvedLogDTO entity) {
-        if (entity == null) {
-            LOGGER.warning("Cannot update null ReshelvedLogDTO or entity without ID");
+        if (entity == null)
             return false;
-        }
 
         String sql = "UPDATE reshelved_log SET item_code = ?, quantity = ?, store_type = ? WHERE id = ?";
         try (Connection conn = connectionProvider.getPoolConnection();
@@ -112,22 +102,17 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
             stmt.setInt(4, entity.getId());
 
             int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                LOGGER.info("Reshelved log updated successfully: " + entity.getId());
-                return true;
-            }
+            return rowsAffected > 0;
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error updating reshelved log", e);
+            // Silent fail
         }
         return false;
     }
 
     @Override
     public boolean delete(Integer id) {
-        if (id == null) {
-            LOGGER.warning("Cannot delete ReshelvedLogDTO with null ID");
+        if (id == null)
             return false;
-        }
 
         String sql = "DELETE FROM reshelved_log WHERE id = ?";
         try (Connection conn = connectionProvider.getPoolConnection();
@@ -135,22 +120,17 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
 
             stmt.setInt(1, id);
             int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                LOGGER.info("Reshelved log deleted successfully: " + id);
-                return true;
-            }
+            return rowsAffected > 0;
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error deleting reshelved log: " + id, e);
+            // Silent fail
         }
         return false;
-    } // Implementation of ReshelvedLogDataAccess specific methods
+    }
 
     @Override
     public void logReshelving(String itemCode, int quantity, StoreType storeType) {
-        if (itemCode == null || itemCode.trim().isEmpty()) {
-            LOGGER.warning("Cannot log reshelving with null or empty item code");
+        if (itemCode == null || itemCode.trim().isEmpty())
             return;
-        }
 
         String sql = "INSERT INTO reshelved_log (item_code, quantity, store_type) VALUES (?, ?, ?)";
         try (Connection conn = connectionProvider.getPoolConnection();
@@ -160,18 +140,13 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
             stmt.setInt(2, quantity);
             stmt.setString(3, storeType.name());
 
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                LOGGER.info(String.format("Reshelving logged: %s - %d units moved to %s inventory",
-                        itemCode, quantity, storeType.name().toLowerCase()));
-            }
+            stmt.executeUpdate();
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error logging reshelving activity for item: " + itemCode, e);
+            // Silent fail
         }
     }
 
-    // Overloaded method for backward compatibility
     @Override
     public void logReshelving(String itemCode, int quantity) {
         logReshelving(itemCode, quantity, StoreType.INSTORE);
@@ -179,10 +154,8 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
 
     @Override
     public List<ReshelvedLogDTO> getReshelveHistory(String itemCode) {
-        if (itemCode == null || itemCode.trim().isEmpty()) {
-            LOGGER.warning("Cannot get reshelve history with null or empty item code");
+        if (itemCode == null || itemCode.trim().isEmpty())
             return new ArrayList<>();
-        }
 
         List<ReshelvedLogDTO> logs = new ArrayList<>();
         String sql = "SELECT * FROM reshelved_log WHERE item_code = ? ORDER BY reshelved_at DESC";
@@ -202,7 +175,7 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
                 }
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error fetching reshelve history for item: " + itemCode, e);
+            // Silent fail
         }
 
         return logs;
@@ -227,7 +200,7 @@ public class ReshelvedLogGateway implements ReshelvedLogDataAccess {
                 }
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error fetching all reshelve history", e);
+            // Silent fail
         }
 
         return logs;

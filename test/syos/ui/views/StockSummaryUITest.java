@@ -63,36 +63,31 @@ class StockSummaryUITest {
         when(summary.getAvailableStock()).thenReturn(availableStock);
         when(summary.getUsedStock()).thenReturn(usedStock);
         return summary;
-    }
+    } // Helper method to debug output
 
-    // Helper method to debug output
     private void debugOutput(String testName, String output) {
         System.err.println("=== DEBUG OUTPUT for " + testName + " ===");
         System.err.println(output);
         System.err.println("=== END DEBUG OUTPUT ===");
     }
 
-    @Nested
-    @DisplayName("Constructor Tests")
-    class ConstructorTests {
+    // Constructor Tests
+    @Test
+    @DisplayName("Should create instance with valid scanner")
+    void testConstructor_WithValidScanner() {
+        // Arrange & Act
+        Scanner validScanner = createScanner("test");
+        StockSummaryUI ui = new StockSummaryUI(validScanner);
 
-        @Test
-        @DisplayName("Should create instance with valid scanner")
-        void testConstructor_WithValidScanner() {
-            // Arrange & Act
-            Scanner validScanner = createScanner("test");
-            StockSummaryUI ui = new StockSummaryUI(validScanner);
+        // Assert
+        assertNotNull(ui);
+    }
 
-            // Assert
-            assertNotNull(ui);
-        }
-
-        @Test
-        @DisplayName("Should handle null scanner")
-        void testConstructor_WithNullScanner() {
-            // Act & Assert
-            assertDoesNotThrow(() -> new StockSummaryUI(null));
-        }
+    @Test
+    @DisplayName("Should handle null scanner")
+    void testConstructor_WithNullScanner() {
+        // Act & Assert
+        assertDoesNotThrow(() -> new StockSummaryUI(null));
     }
 
     @Nested

@@ -2,6 +2,9 @@ package syos.service;
 
 import syos.dto.BillHistoryDTO;
 import syos.interfaces.IReportService;
+import syos.strategy.DateFilterStrategy;
+import syos.strategy.DateFilterStrategyFactory;
+import syos.strategy.NoFilterStrategy;
 import syos.util.DatabaseConnection;
 
 import java.sql.*;
@@ -134,12 +137,13 @@ public class BillHistoryReportService implements IReportService<BillHistoryDTO> 
     }
 
     private String buildInStoreBillQuery(DateFilter dateFilter) {
-        StringBuilder sql = new StringBuilder(
-                "SELECT id, date, time, total, employee_name FROM bills");
+        StringBuilder sql = new StringBuilder("SELECT id, date, time, total, employee_name FROM bills");
 
-        if (dateFilter != DateFilter.ALL_TIME) {
+        DateFilterStrategy strategy = DateFilterStrategyFactory.getStrategy(dateFilter);
+
+        if (!(strategy instanceof NoFilterStrategy)) {
             sql.append(" WHERE ");
-            appendDateCondition(sql, dateFilter, "date");
+            strategy.apply(sql, "date");
         }
 
         sql.append(" ORDER BY date DESC, time DESC");

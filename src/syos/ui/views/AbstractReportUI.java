@@ -10,12 +10,8 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
- * Enhanced Template Method pattern for all report UIs
- * Provides comprehensive reporting workflow with hooks for customization
- * Implements SOLID principles: SRP (report display workflow), OCP (extensible
- * via hooks),
- * LSP (concrete reports are substitutable), ISP (specific report interfaces),
- * DIP (depends on report service abstractions)
+ * Template Method pattern for all report UIs
+ * 
  */
 public abstract class AbstractReportUI<T> {
 

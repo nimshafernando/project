@@ -14,11 +14,9 @@ import java.util.Scanner;
  * Shows batch-wise stock details with status and expiry information.
  */
 public class StockBatchReportUI extends AbstractReportUI<StockBatchDTO> {
-
     private final StockBatchReportService service = new StockBatchReportService();
     private BatchFilter batchFilter;
     private String specificItemCode;
-    private boolean showSummary;
 
     public StockBatchReportUI(Scanner scanner) {
         super(scanner);
@@ -36,13 +34,11 @@ public class StockBatchReportUI extends AbstractReportUI<StockBatchDTO> {
             }
 
             clearScreen();
-
             if (batchFilter != BatchFilter.ALL) {
                 specificItemCode = promptSpecificItem();
                 clearScreen();
             }
 
-            showSummary = true; // Always show summary
             return true;
         } catch (Exception e) {
             System.out.println("Error gathering criteria: " + e.getMessage());
@@ -118,51 +114,32 @@ public class StockBatchReportUI extends AbstractReportUI<StockBatchDTO> {
 
     @Override
     protected void renderReport(List<StockBatchDTO> batches) {
-        // Show summary first if requested
-        if (showSummary) {
-            renderSummary();
-            System.out.println("");
-        }
-
+        // Flat display - render only batch details with integrated summary info
         renderBatchDetails(batches);
     }
 
     /**
-     * Renders batch summary statistics.
-     * SRP: Focused on summary rendering only.
-     */
-    private void renderSummary() {
-        BatchSummary summary = service.getBatchSummary();
-
-        System.out.println("============================== BATCH SUMMARY ==============================");
-        System.out.printf("Total Batches: %-8d | Active: %-8d | Expiring Soon: %-8d%n",
-                summary.getTotalBatches(), summary.getActiveBatches(), summary.getExpiringSoon());
-        System.out.printf("Expired: %-13d | Depleted: %-6d%n",
-                summary.getExpired(), summary.getDepleted());
-        System.out.println("-------------------------------------------------------------------------------");
-        System.out.printf("Total Stock: %-10d | Available: %-9d | Used: %-10d%n",
-                summary.getTotalStock(), summary.getAvailableStock(), summary.getUsedStock());
-        System.out.println("===============================================================================");
-    }
-
-    /**
-     * Renders detailed batch information.
-     * SRP: Focused on batch details rendering only.
+     * Renders detailed batch information in a flat display format.
+     * SRP: Focused on flat batch details rendering only.
      */
     private void renderBatchDetails(List<StockBatchDTO> batches) {
-        System.out
-                .println(
-                        "======================================= STOCK BATCH DETAILS =======================================");
-        System.out.println("Filter: " + getBatchFilterDescription());
+        // Get system-wide summary for integrated display
+        BatchSummary summary = service.getBatchSummary();
+
+        System.out.println(
+                "======================================= STOCK BATCH REPORT =======================================");
+        System.out.printf("Filter: %-25s | System Total: %-8d | Active: %-8d | Expiring: %-8d%n",
+                getBatchFilterDescription(), summary.getTotalBatches(), summary.getActiveBatches(),
+                summary.getExpiringSoon());
         if (specificItemCode != null) {
             System.out.println("Item Code: " + specificItemCode);
         }
         System.out.println(
-                "----------------------------------------------------------------------------------------------------");
+                "---------------------------------------------------------------------------------------------------");
         System.out.printf("%-6s %-10s %-20s %-12s %-12s %-8s %-9s %-8s %-10s%n",
                 "S.No", "Code", "Name", "Purchase", "Expiry", "Total", "Available", "Used", "Price");
         System.out.println(
-                "----------------------------------------------------------------------------------------------------");
+                "---------------------------------------------------------------------------------------------------");
 
         int serialNo = 1;
         for (StockBatchDTO batch : batches) {
@@ -185,20 +162,22 @@ public class StockBatchReportUI extends AbstractReportUI<StockBatchDTO> {
         }
 
         System.out.println(
-                "----------------------------------------------------------------------------------------------------");
-        System.out.printf("Total Batches Displayed: %d%n", batches.size());
+                "---------------------------------------------------------------------------------------------------");
+        System.out.printf("Filtered Results: %-8d", batches.size());
 
         if (!batches.isEmpty()) {
             int totalStock = batches.stream().mapToInt(StockBatchDTO::getTotalQuantity).sum();
             int availableStock = batches.stream().mapToInt(b -> Math.max(0, b.getAvailableQuantity())).sum();
             int usedStock = batches.stream().mapToInt(StockBatchDTO::getUsedQuantity).sum();
 
-            System.out.printf("Total Stock in View: %d | Available: %d | Used: %d%n",
+            System.out.printf(" | View Total: %-8d | View Available: %-8d | View Used: %-8d%n",
                     totalStock, availableStock, usedStock);
+        } else {
+            System.out.println();
         }
 
         System.out.println(
-                "====================================================================================================");
+                "===================================================================================================");
     }
 
     /**
@@ -217,17 +196,21 @@ public class StockBatchReportUI extends AbstractReportUI<StockBatchDTO> {
 
     @Override
     protected void showNoDataMessage() {
-        System.out
-                .println(
-                        "======================================= STOCK BATCH DETAILS =======================================");
-        System.out.println("Filter: " + getBatchFilterDescription());
+        // Get system-wide summary for integrated display
+        BatchSummary summary = service.getBatchSummary();
+
+        System.out.println(
+                "======================================= STOCK BATCH REPORT =======================================");
+        System.out.printf("Filter: %-25s | System Total: %-8d | Active: %-8d | Expiring: %-8d%n",
+                getBatchFilterDescription(), summary.getTotalBatches(), summary.getActiveBatches(),
+                summary.getExpiringSoon());
         if (specificItemCode != null) {
             System.out.println("Item Code: " + specificItemCode);
         }
         System.out.println("");
         System.out.println("No batches found matching the selected criteria.");
         System.out.println(
-                "====================================================================================================");
+                "===================================================================================================");
         waitForEnter();
     }
 }

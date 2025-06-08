@@ -8,15 +8,12 @@ import syos.util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Refactored OnlineItemGateway
  */
 public class OnlineItemGateway implements OnlineItemDataAccess {
 
-    private static final Logger LOGGER = Logger.getLogger(OnlineItemGateway.class.getName());
     private final DatabaseConnectionProvider connectionProvider;
 
     public OnlineItemGateway(DatabaseConnectionProvider connectionProvider) {
@@ -64,7 +61,6 @@ public class OnlineItemGateway implements OnlineItemDataAccess {
             return rs.next() ? mapItem(rs) : null;
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error finding item: " + code, e);
             return null;
         }
     }
@@ -84,7 +80,7 @@ public class OnlineItemGateway implements OnlineItemDataAccess {
             }
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error retrieving all items", e);
+            // silently ignore
         }
 
         return items;
@@ -120,7 +116,6 @@ public class OnlineItemGateway implements OnlineItemDataAccess {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error updating price: " + code, e);
             return false;
         }
     }
@@ -153,7 +148,6 @@ public class OnlineItemGateway implements OnlineItemDataAccess {
             }
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Batch stock update failed", e);
             return false;
         }
     }
@@ -170,7 +164,7 @@ public class OnlineItemGateway implements OnlineItemDataAccess {
             stmt.executeUpdate();
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Stock adjustment failed: " + code, e);
+            // silently ignore
         }
     }
 
@@ -193,7 +187,6 @@ public class OnlineItemGateway implements OnlineItemDataAccess {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed DB update: " + item.getCode(), e);
             return false;
         }
     }
@@ -206,7 +199,6 @@ public class OnlineItemGateway implements OnlineItemDataAccess {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed DB update: " + code, e);
             return false;
         }
     }

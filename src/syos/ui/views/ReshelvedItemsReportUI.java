@@ -35,12 +35,14 @@ public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
     @Override
     protected boolean gatherReportCriteria() {
         try {
+            System.out.println("DEBUG: Starting gatherReportCriteria");
             Map<String, StoreFilter> storeOptions = new LinkedHashMap<>();
             storeOptions.put("1", StoreFilter.IN_STORE_ONLY);
             storeOptions.put("2", StoreFilter.ONLINE_ONLY);
             storeOptions.put("3", StoreFilter.COMBINED);
             storeOptions.put("0", null);
             storeFilter = promptFilter("Store Type", storeOptions);
+            System.out.println("DEBUG: Selected storeFilter: " + storeFilter);
             if (storeFilter == null)
                 return false;
 
@@ -53,15 +55,20 @@ public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
             dateOptions.put("4", DateRangeFilter.SPECIFIC_DATE_RANGE);
             dateOptions.put("0", null);
             dateRangeFilter = promptFilter("Date Range", dateOptions);
+            System.out.println("DEBUG: Selected dateRangeFilter: " + dateRangeFilter);
             if (dateRangeFilter == null)
                 return false;
 
             clearScreen();
 
-            if (!setDatesFromFilter())
+            System.out.println("DEBUG: About to call setDatesFromFilter()");
+            boolean dateResult = setDatesFromFilter();
+            System.out.println("DEBUG: setDatesFromFilter() returned: " + dateResult);
+            if (!dateResult)
                 return false;
 
             clearScreen();
+            System.out.println("DEBUG: gatherReportCriteria returning true");
             return true;
 
         } catch (Exception e) {
@@ -86,23 +93,34 @@ public class ReshelvedItemsReportUI extends AbstractReportUI<ReshelvedItemDTO> {
 
     private boolean setDatesFromFilter() {
         LocalDate today = LocalDate.now();
+        System.out.println("DEBUG: setDatesFromFilter called with dateRangeFilter: " + dateRangeFilter);
 
         return switch (dateRangeFilter) {
             case TODAY -> {
+                System.out.println("DEBUG: Processing TODAY case");
                 startDate = endDate = today;
                 yield true;
             }
             case THIS_WEEK -> {
+                System.out.println("DEBUG: Processing THIS_WEEK case");
                 startDate = today.minusDays(today.getDayOfWeek().getValue() - 1);
                 endDate = today;
                 yield true;
             }
             case THIS_MONTH -> {
+                System.out.println("DEBUG: Processing THIS_MONTH case");
                 startDate = today.withDayOfMonth(1);
                 endDate = today;
                 yield true;
             }
-            case SPECIFIC_DATE_RANGE -> promptSpecificDateRange();
+            case SPECIFIC_DATE_RANGE -> {
+                System.out.println("DEBUG: Processing SPECIFIC_DATE_RANGE case");
+                yield promptSpecificDateRange();
+            }
+            default -> {
+                System.out.println("DEBUG: Unexpected dateRangeFilter value: " + dateRangeFilter);
+                throw new IllegalStateException("Unexpected value: " + dateRangeFilter);
+            }
         };
     }
 

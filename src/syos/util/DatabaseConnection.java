@@ -10,7 +10,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * DatabaseConnection with Singleton + Object Pool design patterns
  * Ensures single instance of connection manager and efficient connection
  * pooling
  * Implements SOLID principles: SRP (single responsibility for DB connections),
